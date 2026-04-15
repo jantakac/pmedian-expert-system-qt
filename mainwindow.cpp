@@ -1,8 +1,6 @@
 #include "mainwindow.hpp"
 #include "./ui_mainwindow.h"
 
-#include <QOpenGLWidget>
-
 #include "graphscene.hpp"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -11,9 +9,6 @@ MainWindow::MainWindow(QWidget *parent)
     , m_scene{new GraphScene{this, new Graph{}}}
 {
     ui->setupUi(this);
-    ui->gView->setViewport(new QOpenGLWidget{});
-    ui->gView->setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
-    ui->gView->setRenderHint(QPainter::Antialiasing);
     ui->gView->setScene(m_scene);
     ui->gView->setGraphScene(m_scene);
     m_scene->setSceneRect(-5000, -5000, 10000, 10000);

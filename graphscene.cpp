@@ -76,7 +76,7 @@ const QList<std::pair<QGraphicsLineItem *, const Graph::Edge *> > &GraphScene::e
 void GraphScene::addNode(const QPointF &scenePos)
 {
     const Graph::Node *addedNode = m_backend->addNode(mapSceneToGridPos(scenePos));
-    m_nodes.emplaceBack(new NodeGraphicsItem{QString::number(addedNode->id), scenePos, 30},
+    m_nodes.emplaceBack(new NodeGraphicsItem{QString::number(addedNode->id), scenePos, nodeSize},
                         addedNode);
     addItem(m_nodes.back().first);
 }

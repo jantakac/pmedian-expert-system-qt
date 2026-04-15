@@ -1,7 +1,7 @@
 #include "panningview.hpp"
 
-#include <QGraphicsEllipseItem>
 #include <QMouseEvent>
+#include <QOpenGLWidget>
 #include <QScrollBar>
 
 #include "../graphscene.hpp"
@@ -10,16 +10,32 @@
 PanningView::PanningView(QWidget *parent)
     : QGraphicsView(parent)
 {
+    setCacheMode(QGraphicsView::CacheBackground);
+    setViewport(new QOpenGLWidget{});
+    setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
+    setRenderHint(QPainter::Antialiasing);
     setMouseTracking(true);
+    m_throttleTimer.start();
 }
 
 void PanningView::setPlacementMode(bool active)
 {
-    m_isPlacing = active;
-    if (m_isPlacing)
+    m_isPlacingNode = active;
+
+    if (m_isPlacingNode) {
+        if (!m_previewNode) {
+            m_previewNode = new NodeGraphicsItem{" ", QPointF{0, 0}, GraphScene::nodeSize};
+            m_previewNode->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+            scene()->addItem(m_previewNode);
+        }
+        m_previewNode->show();
         setCursor(Qt::CrossCursor);
-    else
+    } else {
+        if (m_previewNode) {
+            m_previewNode->hide();
+        }
         setCursor(Qt::ArrowCursor);
+    }
 }
 
 void PanningView::setGraphScene(GraphScene *graphScene)
@@ -29,9 +45,9 @@ void PanningView::setGraphScene(GraphScene *graphScene)
 
 void PanningView::mousePressEvent(QMouseEvent *event)
 {
-    if (m_isPlacing && event->button() == Qt::LeftButton) {
-        QPointF pos = mapToScene(event->position().toPoint());
-        m_graphScene->addNode(pos);
+    if (m_isPlacingNode && event->button() == Qt::LeftButton) {
+        QPointF scenePos = mapToScene(event->position().toPoint());
+        m_graphScene->addNode(scenePos);
 
         setPlacementMode(false);
         emit placementFinished();
@@ -48,7 +64,7 @@ void PanningView::mousePressEvent(QMouseEvent *event)
 void PanningView::mouseReleaseEvent(QMouseEvent *event)
 {
     if (event->button() == Qt::MiddleButton) {
-        if (!m_isPlacing)
+        if (!m_isPlacingNode)
             setCursor(Qt::ArrowCursor);
         else
             setCursor(Qt::CrossCursor);
@@ -58,12 +74,20 @@ void PanningView::mouseReleaseEvent(QMouseEvent *event)
 
 void PanningView::mouseMoveEvent(QMouseEvent *event)
 {
-    if (event->buttons() & Qt::MiddleButton) {
-        QPoint delta = event->pos() - m_lastPanPoint;
-        m_lastPanPoint = event->pos();
-        horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
-        verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
-    }
+    if (m_throttleTimer.elapsed() > throttleThresholdMs) {
+        m_throttleTimer.restart();
+        if (m_isPlacingNode && m_previewNode) {
+            QPointF scenePos = mapToScene(event->position().toPoint());
+            m_previewNode->setPos(scenePos.x(), scenePos.y());
+        }
 
+        if (event->buttons() & Qt::MiddleButton) {
+            QPoint eventPos = event->position().toPoint();
+            QPoint delta = eventPos - m_lastPanPoint;
+            m_lastPanPoint = eventPos;
+            horizontalScrollBar()->setValue(horizontalScrollBar()->value() - delta.x());
+            verticalScrollBar()->setValue(verticalScrollBar()->value() - delta.y());
+        }
+    }
     QGraphicsView::mouseMoveEvent(event);
 }
