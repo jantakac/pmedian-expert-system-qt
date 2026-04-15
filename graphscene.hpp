@@ -5,6 +5,7 @@
 #include <QPointer>
 
 #include "graph.hpp"
+#include "nodegraphicsitem.hpp"
 
 class NodeGraphicsItem;
 
@@ -24,6 +25,9 @@ public:
     void addNode(const QPointF &scenePos);
     static constexpr QPointF mapGridToScenePos(const QPointF &gridPos) noexcept;
     static constexpr QPointF mapSceneToGridPos(const QPointF &scenePos) noexcept;
+    void showPreviewNode();
+    void hidePreviewNode();
+    void setPreviewNodePos(const QPointF &pos);
 
 public slots:
     void onGraphDataChanged();
@@ -35,6 +39,9 @@ protected:
 private:
     QList<std::pair<NodeGraphicsItem *, const Graph::Node *>> m_nodes;
     QList<std::pair<QGraphicsLineItem *, const Graph::Edge *>> m_edges;
+    QGraphicsEllipseItem *m_previewNode = new NodeGraphicsItem{"",
+                                                               QPointF{0, 0},
+                                                               GraphScene::nodeSize};
     QPointer<Graph> m_backend;
 };
 

@@ -5,7 +5,6 @@
 #include <QScrollBar>
 
 #include "../graphscene.hpp"
-#include "../nodegraphicsitem.hpp"
 
 PanningView::PanningView(QWidget *parent)
     : QGraphicsView(parent)
@@ -18,24 +17,22 @@ PanningView::PanningView(QWidget *parent)
     m_throttleTimer.start();
 }
 
-void PanningView::setPlacementMode(bool active)
+void PanningView::setNodePlacementMode(bool active)
 {
     m_isPlacingNode = active;
 
     if (m_isPlacingNode) {
-        if (!m_previewNode) {
-            m_previewNode = new NodeGraphicsItem{" ", QPointF{0, 0}, GraphScene::nodeSize};
-            m_previewNode->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
-            scene()->addItem(m_previewNode);
-        }
-        m_previewNode->show();
+        m_graphScene->showPreviewNode();
         setCursor(Qt::CrossCursor);
     } else {
-        if (m_previewNode) {
-            m_previewNode->hide();
-        }
+        m_graphScene->hidePreviewNode();
         setCursor(Qt::ArrowCursor);
     }
+}
+
+void PanningView::setEdgePlacementMode(bool active)
+{
+    m_isPlacingEdge = active;
 }
 
 void PanningView::setGraphScene(GraphScene *graphScene)
@@ -49,8 +46,8 @@ void PanningView::mousePressEvent(QMouseEvent *event)
         QPointF scenePos = mapToScene(event->position().toPoint());
         m_graphScene->addNode(scenePos);
 
-        setPlacementMode(false);
-        emit placementFinished();
+        setNodePlacementMode(false);
+        emit nodePlacementFinished();
         return;
     }
 
@@ -76,10 +73,8 @@ void PanningView::mouseMoveEvent(QMouseEvent *event)
 {
     if (m_throttleTimer.elapsed() > throttleThresholdMs) {
         m_throttleTimer.restart();
-        if (m_isPlacingNode && m_previewNode) {
-            QPointF scenePos = mapToScene(event->position().toPoint());
-            m_previewNode->setPos(scenePos.x(), scenePos.y());
-        }
+        if (m_isPlacingNode)
+            m_graphScene->setPreviewNodePos(mapToScene(event->position().toPoint()));
 
         if (event->buttons() & Qt::MiddleButton) {
             QPoint eventPos = event->position().toPoint();

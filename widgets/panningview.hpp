@@ -15,7 +15,8 @@ public:
     static constexpr qint64 throttleThresholdMs = 10;
 
     explicit PanningView(QWidget *parent = nullptr);
-    void setPlacementMode(bool active);
+    void setNodePlacementMode(bool active);
+    void setEdgePlacementMode(bool active);
     void setGraphScene(GraphScene *graphScene);
 
 protected:
@@ -24,15 +25,15 @@ protected:
     void mouseMoveEvent(QMouseEvent *event) override;
 
 signals:
-    void placementFinished();
+    void nodePlacementFinished();
+    void edgePlacementFinished();
 
 private:
     QPoint m_lastPanPoint = QPoint{};
     GraphScene *m_graphScene = nullptr;
-    NodeGraphicsItem *m_selectedNode = nullptr;
-    QGraphicsEllipseItem *m_previewNode = nullptr;
     QElapsedTimer m_throttleTimer;
     bool m_isPlacingNode = false;
+    bool m_isPlacingEdge = false;
 };
 
 #endif // PANNINGVIEW_HPP

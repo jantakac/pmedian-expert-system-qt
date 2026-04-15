@@ -12,6 +12,9 @@ GraphScene::GraphScene(QObject *parent, Graph *backendGraph)
     if (backendGraph) {
         setBackendGraph(backendGraph);
     }
+    m_previewNode->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
+    addItem(m_previewNode);
+    m_previewNode->hide();
 }
 
 Graph &GraphScene::backend()
@@ -90,6 +93,21 @@ constexpr QPointF GraphScene::mapSceneToGridPos(const QPointF &scenePos) noexcep
 {
     return QPointF{scenePos.x() / (gridSize / gridTickStep),
                    scenePos.y() / (gridSize / gridTickStep)};
+}
+
+void GraphScene::showPreviewNode()
+{
+    m_previewNode->show();
+}
+
+void GraphScene::hidePreviewNode()
+{
+    m_previewNode->hide();
+}
+
+void GraphScene::setPreviewNodePos(const QPointF &pos)
+{
+    m_previewNode->setPos(pos);
 }
 
 void GraphScene::drawBackground(QPainter *painter, const QRectF &rect)

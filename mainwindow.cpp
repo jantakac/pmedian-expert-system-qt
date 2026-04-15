@@ -14,8 +14,11 @@ MainWindow::MainWindow(QWidget *parent)
     m_scene->setSceneRect(-5000, -5000, 10000, 10000);
     m_scene->setBackgroundBrush(Qt::white);
 
-    connect(ui->gView, &PanningView::placementFinished, this, [this]() {
+    connect(ui->gView, &PanningView::nodePlacementFinished, this, [this]() {
         ui->btnAddNode->setChecked(false);
+    });
+    connect(ui->gView, &PanningView::edgePlacementFinished, this, [this]() {
+        ui->btnAddEdge->setChecked(false);
     });
 }
 
@@ -26,5 +29,10 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnAddNode_clicked(bool checked)
 {
-    ui->gView->setPlacementMode(checked);
+    ui->gView->setNodePlacementMode(checked);
+}
+
+void MainWindow::on_btnAddEdge_clicked(bool checked)
+{
+    ui->gView->setEdgePlacementMode(checked);
 }

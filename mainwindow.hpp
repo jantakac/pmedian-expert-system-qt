@@ -21,6 +21,8 @@ public:
 private slots:
     void on_btnAddNode_clicked(bool checked);
 
+    void on_btnAddEdge_clicked(bool checked);
+
 private:
     Ui::MainWindow *ui;
     GraphScene *m_scene;
