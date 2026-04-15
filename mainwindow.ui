@@ -22,6 +22,9 @@
         <property name="text">
          <string>Add node</string>
         </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
        </widget>
       </item>
       <item>

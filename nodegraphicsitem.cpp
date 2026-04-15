@@ -1,7 +1,13 @@
 #include "nodegraphicsitem.hpp"
 
-NodeGraphicsItem::NodeGraphicsItem(
-    const QString &label, int32_t x, int32_t y, uint16_t size, QGraphicsItem *parent)
+#include <QBrush>
+#include <QPen>
+#include <qfont.h>
+
+NodeGraphicsItem::NodeGraphicsItem(const QString &label,
+                                   QPointF scenePos,
+                                   uint16_t size,
+                                   QGraphicsItem *parent)
     : QGraphicsEllipseItem(0, 0, size, size, parent)
     , m_label{new QGraphicsTextItem{label, this}}
     , m_size{size}
@@ -9,24 +15,14 @@ NodeGraphicsItem::NodeGraphicsItem(
     setFlags(ItemIsSelectable);
     setBrush(QBrush{Qt::green});
     setPen(QPen{Qt::black});
-    changePosOnGrid(x, y);
-    updateLabelPos();
+    m_label->font().setPointSize(m_size / 2.0);
+    setScenePos(scenePos);
 }
 
-void NodeGraphicsItem::updateLabelPos()
+void NodeGraphicsItem::setScenePos(const QPointF &scenePos) noexcept
 {
-    if (!m_label)
-        return;
+    setRect(scenePos.x() - m_size / 2.0, scenePos.y() - m_size / 2.0, m_size, m_size);
 
-    QFont font = m_label->font();
-    font.setPointSize(m_size / 2.0);
-    m_label->setFont(font);
-
-    m_label->setPos(m_size / 2.0 - m_label->boundingRect().width() / 2,
-                    m_size / 2.0 - m_label->boundingRect().height() / 2);
-}
-
-void NodeGraphicsItem::changePosOnGrid(int32_t xGrid, int32_t yGrid)
-{
-    setPos(xGrid * 5 - m_size / 2.0, yGrid * -5 - m_size / 2.0);
+    m_label->setPos(scenePos.x() - m_size / 2.0 + (m_size - m_label->boundingRect().width()) / 2.0,
+                    scenePos.y() - m_size / 2.0 + (m_size - m_label->boundingRect().height()) / 2.0);
 }

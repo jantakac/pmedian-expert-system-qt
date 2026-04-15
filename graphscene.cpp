@@ -1,5 +1,11 @@
 #include "graphscene.hpp"
 
+#include <QPointer>
+#include <QVarLengthArray>
+#include <qpainter.h>
+
+#include "nodegraphicsitem.hpp"
+
 GraphScene::GraphScene(QObject *parent, Graph *backendGraph)
     : QGraphicsScene{parent}
 {
@@ -26,7 +32,7 @@ void GraphScene::setBackendGraph(Graph *backendGraph)
     m_nodes.clear();
     NodeGraphicsItem *nodeG;
     for (const auto &node : m_backend->nodes()) {
-        nodeG = new NodeGraphicsItem{QString::number(node.id), node.x, node.y, nodeSize};
+        nodeG = new NodeGraphicsItem{QString::number(node.id), node.pos, nodeSize};
         m_nodes.emplaceBack(nodeG, &node);
     }
 
@@ -65,6 +71,25 @@ const QList<std::pair<NodeGraphicsItem *, const Graph::Node *> > &GraphScene::no
 const QList<std::pair<QGraphicsLineItem *, const Graph::Edge *> > &GraphScene::edges() const
 {
     return m_edges;
+}
+
+void GraphScene::addNode(const QPointF &scenePos)
+{
+    const Graph::Node *addedNode = m_backend->addNode(mapSceneToGridPos(scenePos));
+    m_nodes.emplaceBack(new NodeGraphicsItem{QString::number(addedNode->id), scenePos, 30},
+                        addedNode);
+    addItem(m_nodes.back().first);
+}
+
+constexpr QPointF GraphScene::mapGridToScenePos(const QPointF &gridPos) noexcept
+{
+    return QPointF{gridPos.x() * (gridSize / gridTickStep), gridPos.y() * (gridSize / gridTickStep)};
+}
+
+constexpr QPointF GraphScene::mapSceneToGridPos(const QPointF &scenePos) noexcept
+{
+    return QPointF{scenePos.x() / (gridSize / gridTickStep),
+                   scenePos.y() / (gridSize / gridTickStep)};
 }
 
 void GraphScene::drawBackground(QPainter *painter, const QRectF &rect)
