@@ -1,9 +1,12 @@
 #include "graphscene.hpp"
 
+#include <QPainter>
 #include <QPointer>
 #include <QVarLengthArray>
-#include <qpainter.h>
+#include <iostream>
 
+#include "edgegraphicsitem.hpp"
+#include "graph.hpp"
 #include "nodegraphicsitem.hpp"
 
 GraphScene::GraphScene(QObject *parent, Graph *backendGraph)
@@ -32,59 +35,34 @@ void GraphScene::setBackendGraph(Graph *backendGraph)
     }
     m_backend = backendGraph;
     m_backend->setParent(this);
-    m_nodes.clear();
-    NodeGraphicsItem *nodeG;
-    for (const auto &node : m_backend->nodes()) {
-        nodeG = new NodeGraphicsItem{QString::number(node.id), node.pos, nodeSize};
-        m_nodes.emplaceBack(nodeG, &node);
-    }
-
-    // this is really unoptimized, should be better if kept
-    // in a different datastructure for searching
-
-    const NodeGraphicsItem *fromNodeG;
-    const NodeGraphicsItem *toNodeG;
-    QGraphicsLineItem *edgeG;
-    for (const auto &edge : m_backend->edges()) {
-        for (const auto &[nodeG, node] : std::as_const(m_nodes)) {
-            if (node->id == edge.from)
-                fromNodeG = nodeG;
-            else if (node->id == edge.to)
-                toNodeG = nodeG;
-        }
-        edgeG = new QGraphicsLineItem{fromNodeG->x() + nodeSize / 2.0,
-                                      fromNodeG->y() + nodeSize / 2.0,
-                                      toNodeG->x() + nodeSize / 2.0,
-                                      toNodeG->y() + nodeSize / 2.0};
-        edgeG->setPen(QPen{Qt::black, edgeWidth});
-        m_edges.emplaceBack(edgeG, &edge);
-        addItem(edgeG);
-    }
-
-    for (const auto &[nodeG, node] : std::as_const(m_nodes)) {
-        addItem(nodeG);
-    }
-}
-
-const QList<std::pair<NodeGraphicsItem *, const Graph::Node *> > &GraphScene::nodes() const
-{
-    return m_nodes;
-}
-
-const QList<std::pair<QGraphicsLineItem *, const Graph::Edge *> > &GraphScene::edges() const
-{
-    return m_edges;
 }
 
 void GraphScene::addNode(const QPointF &scenePos)
 {
-    const Graph::Node *addedNode = m_backend->addNode(mapSceneToGridPos(scenePos));
-    m_nodes.emplaceBack(new NodeGraphicsItem{QString::number(addedNode->id), scenePos, nodeSize},
-                        addedNode);
-    addItem(m_nodes.back().first);
+    uint32_t addedId = m_backend->addNode(mapSceneToGridPos(scenePos)).id;
+    NodeGraphicsItem *nodeG = new NodeGraphicsItem{QString::number(addedId),
+                                                   scenePos,
+                                                   addedId,
+                                                   nodeSize,
+                                                   true};
+    m_nodeGItems.emplace(addedId, nodeG);
+    addItem(nodeG);
+    connect(nodeG, &NodeGraphicsItem::nodeSelected, this, &GraphScene::onNodeSelected);
 }
 
-constexpr QPointF GraphScene::mapGridToScenePos(const QPointF &gridPos) noexcept
+void GraphScene::addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo)
+{
+    uint32_t addedId = m_backend->addEdge(nodeIdFrom, nodeIdTo).id;
+    EdgeGraphicsItem *edgeG
+        = new EdgeGraphicsItem{QLineF{mapGridToScenePos(m_backend->nodeById(nodeIdFrom)->pos),
+                                      mapGridToScenePos(m_backend->nodeById(nodeIdTo)->pos)},
+                               addedId};
+    m_edgeGItems.emplace(addedId, edgeG);
+    addItem(edgeG);
+    connect(edgeG, &EdgeGraphicsItem::edgeSelected, this, &GraphScene::onEdgeSelected);
+}
+
+constexpr QPointF GraphScene::mapGridToScenePos(QPointF gridPos) noexcept
 {
     return QPointF{gridPos.x() * (gridSize / gridTickStep), gridPos.y() * (gridSize / gridTickStep)};
 }
@@ -108,6 +86,16 @@ void GraphScene::hidePreviewNode()
 void GraphScene::setPreviewNodePos(const QPointF &pos)
 {
     m_previewNode->setPos(pos);
+}
+
+void GraphScene::onNodeSelected(uint32_t nodeId)
+{
+    std::cout << "ID: " << m_backend->nodeById(nodeId)->id << std::endl;
+}
+
+void GraphScene::onEdgeSelected(uint32_t edgeId)
+{
+    std::cout << "edge ID: " << m_backend->edgeById(edgeId)->id << std::endl;
 }
 
 void GraphScene::drawBackground(QPainter *painter, const QRectF &rect)

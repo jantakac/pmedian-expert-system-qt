@@ -1,0 +1,23 @@
+#ifndef EDGEGRAPHICSITEM_HPP
+#define EDGEGRAPHICSITEM_HPP
+
+#include <QGraphicsLineItem>
+
+class EdgeGraphicsItem : public QObject, public QGraphicsLineItem
+{
+    Q_OBJECT
+public:
+    explicit EdgeGraphicsItem(const QLineF &line, uint32_t backendEdgeId, QObject *parent = nullptr);
+
+signals:
+    void edgeSelected(uint32_t edgeId);
+    void edgeDeselected(uint32_t edgeId);
+
+protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+
+private:
+    uint32_t m_backendEdgeId;
+};
+
+#endif // EDGEGRAPHICSITEM_HPP

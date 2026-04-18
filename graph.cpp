@@ -1,5 +1,6 @@
 #include "graph.hpp"
 
+#include <QLineF>
 #include <fstream>
 
 Graph::Graph(QObject *parent)
@@ -13,26 +14,48 @@ Graph::Graph(std::filesystem::path nodesPath, std::filesystem::path edgesPath, Q
     loadEdges(edgesPath);
 }
 
-const Graph::Node *Graph::addNode(QPointF pos)
+const Graph::Node &Graph::addNode(QPointF pos)
 {
-    m_nodes.emplace_back(pos, ++m_lastAddedNodeId);
-    return &m_nodes.back();
+    auto it = m_nodes.emplace(m_nextNodeId, pos, m_nextNodeId);
+    ++m_nextNodeId;
+    return it.value();
 }
 
-const Graph::Edge *Graph::addEdge(uint32_t from, uint32_t to, uint32_t length)
+void Graph::removeNode(uint32_t id)
 {
-    m_edges.emplace_back(from, to, length);
-    return &m_edges.back();
+    m_nodes.remove(id);
 }
 
-const std::vector<Graph::Node> &Graph::nodes() const
+const Graph::Edge &Graph::addEdge(uint32_t from, uint32_t to)
 {
-    return m_nodes;
+    auto it = m_edges.emplace(m_nextEdgeId,
+                              m_nextEdgeId,
+                              from,
+                              to,
+                              QLineF{nodeById(from)->pos, nodeById(to)->pos}.length());
+    ++m_nextEdgeId;
+    return it.value();
 }
 
-const std::vector<Graph::Edge> &Graph::edges() const
+void Graph::removeEdge(uint32_t id)
 {
-    return m_edges;
+    m_edges.remove(id);
+}
+
+const Graph::Edge *Graph::edgeById(uint32_t id)
+{
+    auto it = m_edges.find(id);
+    if (it == m_edges.end())
+        return nullptr;
+    return &(it.value());
+}
+
+const Graph::Node *Graph::nodeById(uint32_t id)
+{
+    auto it = m_nodes.find(id);
+    if (it == m_nodes.end())
+        return nullptr;
+    return &(it.value());
 }
 
 void Graph::loadNodes(std::filesystem::path path)

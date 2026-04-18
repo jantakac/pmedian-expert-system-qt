@@ -27,6 +27,7 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         graph.hpp graph.cpp
         nodegraphicsitem.hpp nodegraphicsitem.cpp
         widgets/panningview.hpp widgets/panningview.cpp
+        edgegraphicsitem.hpp edgegraphicsitem.cpp
     )
 # Define target properties for Android with Qt 6 as:
 #    set_property(TARGET PMedianExpertSystem APPEND PROPERTY QT_ANDROID_PACKAGE_SOURCE_DIR

@@ -1,6 +1,7 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
+#include <QHash>
 #include <QObject>
 #include <QPointF>
 #include <filesystem>
@@ -13,29 +14,40 @@ public:
     {
         QPointF pos;
         uint32_t id;
+
+        Node(QPointF pos, uint32_t id)
+            : pos{pos}
+            , id{id} {};
     };
     struct Edge
     {
+        uint32_t id;
         uint32_t from;
         uint32_t to;
-        uint32_t length;
+        float length;
+        Edge(uint32_t id, uint32_t from, uint32_t to, float length)
+            : id{id}
+            , from{from}
+            , to{to}
+            , length{length} {};
     };
     explicit Graph(QObject *parent = nullptr);
     explicit Graph(std::filesystem::path nodesPath,
                    std::filesystem::path edgesPath,
                    QObject *parent = nullptr);
-
-    const std::vector<Node> &nodes() const;
-    const std::vector<Edge> &edges() const;
-
-    const Node *addNode(QPointF pos);
-    const Edge *addEdge(uint32_t from, uint32_t to, uint32_t length);
+    const Node &addNode(QPointF pos);
+    void removeNode(uint32_t id);
+    const Edge &addEdge(uint32_t from, uint32_t to);
+    void removeEdge(uint32_t id);
+    const Node *nodeById(uint32_t id);
+    const Edge *edgeById(uint32_t id);
 
 private:
-    std::vector<Node> m_nodes;
-    std::vector<Edge> m_edges;
-    uint32_t m_lastAddedNodeId = 0;
-    uint32_t m_lastAddedEdgeId = 0;
+    QHash<std::uint32_t, Node> m_nodes;
+    QHash<std::uint32_t, Edge> m_edges;
+    double m_costPerKm = 0;
+    uint32_t m_nextNodeId = 1;
+    uint32_t m_nextEdgeId = 1;
 
     void loadNodes(std::filesystem::path path);
     void loadEdges(std::filesystem::path path);

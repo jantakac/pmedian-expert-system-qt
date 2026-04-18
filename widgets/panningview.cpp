@@ -33,6 +33,12 @@ void PanningView::setNodePlacementMode(bool active)
 void PanningView::setEdgePlacementMode(bool active)
 {
     m_isPlacingEdge = active;
+    if (m_isPlacingEdge) {
+        setCursor(Qt::CrossCursor);
+    } else {
+        m_lastNodeIdClickedInEdgeMode = 0;
+        setCursor(Qt::ArrowCursor);
+    }
 }
 
 void PanningView::setGraphScene(GraphScene *graphScene)
@@ -42,13 +48,18 @@ void PanningView::setGraphScene(GraphScene *graphScene)
 
 void PanningView::mousePressEvent(QMouseEvent *event)
 {
-    if (m_isPlacingNode && event->button() == Qt::LeftButton) {
-        QPointF scenePos = mapToScene(event->position().toPoint());
-        m_graphScene->addNode(scenePos);
+    if (event->button() == Qt::LeftButton) {
+        if (m_isPlacingNode) {
+            QPointF scenePos = mapToScene(event->position().toPoint());
+            m_graphScene->addNode(scenePos);
 
-        setNodePlacementMode(false);
-        emit nodePlacementFinished();
-        return;
+            setNodePlacementMode(false);
+            emit nodePlacementFinished();
+            return;
+        }
+        if (m_isPlacingEdge) {
+            edgePlacementHandler(event);
+        }
     }
 
     if (event->button() == Qt::MiddleButton) {
@@ -85,4 +96,33 @@ void PanningView::mouseMoveEvent(QMouseEvent *event)
         }
     }
     QGraphicsView::mouseMoveEvent(event);
+}
+
+void PanningView::edgePlacementHandler(QMouseEvent *event)
+{
+    uint32_t fromNodeId = m_lastNodeIdClickedInEdgeMode;
+
+    setLastClickedItemInEdgeMode(itemAt(event->position().toPoint()));
+
+    if (fromNodeId != 0 && m_lastNodeIdClickedInEdgeMode != 0
+        && fromNodeId != m_lastNodeIdClickedInEdgeMode) {
+        m_graphScene->addEdge(fromNodeId, m_lastNodeIdClickedInEdgeMode);
+    }
+}
+
+void PanningView::setLastClickedItemInEdgeMode(QGraphicsItem *clickedItem)
+{
+    NodeGraphicsItem *nodeG = nullptr;
+    while (clickedItem) {
+        nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(clickedItem);
+        if (nodeG)
+            break;
+        clickedItem = clickedItem->parentItem();
+    }
+
+    if (nodeG) {
+        m_lastNodeIdClickedInEdgeMode = nodeG->backendNodeId();
+    } else {
+        m_lastNodeIdClickedInEdgeMode = 0;
+    }
 }

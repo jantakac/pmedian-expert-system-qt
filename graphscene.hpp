@@ -8,9 +8,11 @@
 #include "nodegraphicsitem.hpp"
 
 class NodeGraphicsItem;
+class EdgeGraphicsItem;
 
 class GraphScene : public QGraphicsScene
 {
+    Q_OBJECT
 public:
     static constexpr uint8_t gridSize = 50;
     static constexpr uint8_t gridTickStep = 10;
@@ -21,27 +23,28 @@ public:
     Graph &backend();
     void setBackendGraph(Graph *backendGraph);
     const QList<std::pair<NodeGraphicsItem *, const Graph::Node *>> &nodes() const;
-    const QList<std::pair<QGraphicsLineItem *, const Graph::Edge *>> &edges() const;
+    const QList<std::pair<EdgeGraphicsItem *, const Graph::Edge *>> &edges() const;
     void addNode(const QPointF &scenePos);
-    static constexpr QPointF mapGridToScenePos(const QPointF &gridPos) noexcept;
+    void addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo);
+    static constexpr QPointF mapGridToScenePos(QPointF gridPos) noexcept;
     static constexpr QPointF mapSceneToGridPos(const QPointF &scenePos) noexcept;
     void showPreviewNode();
     void hidePreviewNode();
     void setPreviewNodePos(const QPointF &pos);
 
 public slots:
-    void onGraphDataChanged();
+    void onNodeSelected(uint32_t nodeId);
+    void onEdgeSelected(uint32_t edgeId);
 
 protected:
     void drawBackground(QPainter *painter, const QRectF &rect) override;
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
 private:
-    QList<std::pair<NodeGraphicsItem *, const Graph::Node *>> m_nodes;
-    QList<std::pair<QGraphicsLineItem *, const Graph::Edge *>> m_edges;
-    QGraphicsEllipseItem *m_previewNode = new NodeGraphicsItem{"",
-                                                               QPointF{0, 0},
-                                                               GraphScene::nodeSize};
+    QHash<uint32_t, NodeGraphicsItem *> m_nodeGItems;
+    QHash<uint32_t, EdgeGraphicsItem *> m_edgeGItems;
+
+    NodeGraphicsItem *m_previewNode = new NodeGraphicsItem{"", QPointF{0, 0}, 0, nodeSize, false};
     QPointer<Graph> m_backend;
 };
 

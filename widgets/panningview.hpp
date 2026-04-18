@@ -3,6 +3,7 @@
 
 #include <QElapsedTimer>
 #include <QGraphicsView>
+#include <QPointer>
 
 class QMouseEvent;
 class GraphScene;
@@ -31,9 +32,13 @@ signals:
 private:
     QPoint m_lastPanPoint = QPoint{};
     GraphScene *m_graphScene = nullptr;
+    uint32_t m_lastNodeIdClickedInEdgeMode = 0;
     QElapsedTimer m_throttleTimer;
     bool m_isPlacingNode = false;
     bool m_isPlacingEdge = false;
+
+    void edgePlacementHandler(QMouseEvent *event);
+    void setLastClickedItemInEdgeMode(QGraphicsItem *clickedItem);
 };
 
 #endif // PANNINGVIEW_HPP
