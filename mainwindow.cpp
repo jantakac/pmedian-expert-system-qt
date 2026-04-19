@@ -29,10 +29,14 @@ MainWindow::~MainWindow()
 
 void MainWindow::on_btnAddNode_clicked(bool checked)
 {
+    ui->btnAddEdge->setChecked(false);
+    ui->gView->setEdgePlacementMode(false);
     ui->gView->setNodePlacementMode(checked);
 }
 
 void MainWindow::on_btnAddEdge_clicked(bool checked)
 {
+    ui->btnAddNode->setChecked(false);
+    ui->gView->setNodePlacementMode(false);
     ui->gView->setEdgePlacementMode(checked);
 }

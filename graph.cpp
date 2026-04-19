@@ -28,18 +28,26 @@ void Graph::removeNode(uint32_t id)
 
 const Graph::Edge &Graph::addEdge(uint32_t from, uint32_t to)
 {
-    auto it = m_edges.emplace(m_nextEdgeId,
-                              m_nextEdgeId,
+    uint32_t id = from + (to << 16);
+    auto it = m_edges.emplace(id,
+                              id,
                               from,
                               to,
                               QLineF{nodeById(from)->pos, nodeById(to)->pos}.length());
-    ++m_nextEdgeId;
     return it.value();
 }
 
 void Graph::removeEdge(uint32_t id)
 {
     m_edges.remove(id);
+}
+
+const Graph::Edge *Graph::edgeByNodes(uint32_t fromNodeId, uint32_t toNodeId)
+{
+    auto it = m_edges.find(fromNodeId + (toNodeId << 16));
+    if (it == m_edges.end())
+        it = m_edges.find(toNodeId + (fromNodeId << 16));
+    return it != m_edges.end() ? &(it.value()) : nullptr;
 }
 
 const Graph::Edge *Graph::edgeById(uint32_t id)

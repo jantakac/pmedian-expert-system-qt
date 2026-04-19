@@ -52,6 +52,9 @@ void GraphScene::addNode(const QPointF &scenePos)
 
 void GraphScene::addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo)
 {
+    if (m_backend->edgeByNodes(nodeIdFrom, nodeIdTo))
+        return;
+
     uint32_t addedId = m_backend->addEdge(nodeIdFrom, nodeIdTo).id;
     EdgeGraphicsItem *edgeG
         = new EdgeGraphicsItem{QLineF{mapGridToScenePos(m_backend->nodeById(nodeIdFrom)->pos),
