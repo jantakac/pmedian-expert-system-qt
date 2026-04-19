@@ -22,6 +22,7 @@ NodeGraphicsItem::NodeGraphicsItem(const QString &label,
     setBrush(QBrush{Qt::green});
     setPen(QPen{Qt::black});
     setScenePos(scenePos);
+    setZValue(10);
 }
 
 void NodeGraphicsItem::setScenePos(const QPointF &scenePos) noexcept
