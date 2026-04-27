@@ -3,6 +3,8 @@
 
 #include <QGraphicsItem>
 
+class EdgeGraphicsItem;
+
 class NodeGraphicsItem : public QObject, public QGraphicsEllipseItem
 {
     Q_OBJECT
@@ -13,8 +15,8 @@ public:
                               uint16_t size,
                               bool selectable,
                               QGraphicsItem *parent = nullptr);
-    void setScenePos(const QPointF &gridPos) noexcept;
     uint32_t backendNodeId();
+    void addConnectedEdge(EdgeGraphicsItem *edgeG);
 
 signals:
     void nodeSelected(uint32_t nodeId);
@@ -22,11 +24,18 @@ signals:
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 private:
+    QList<EdgeGraphicsItem *> m_connectedEdges;
     QGraphicsTextItem *m_label;
     uint32_t m_backendNodeId;
     uint16_t m_size;
+
+    void setupGeometry();
+    void setupStyle();
+    void setupInteraction(bool isSelectable);
+    void setupLabel(const QString &text);
 };
 
 #endif // NODEGRAPHICSITEM_HPP

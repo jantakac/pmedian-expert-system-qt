@@ -54,14 +54,19 @@ void GraphScene::addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo)
 {
     if (m_backend->edgeByNodes(nodeIdFrom, nodeIdTo))
         return;
-
+    NodeGraphicsItem *nodeGFrom = m_nodeGItems[nodeIdFrom];
+    NodeGraphicsItem *nodeGTo = m_nodeGItems[nodeIdTo];
     uint32_t addedId = m_backend->addEdge(nodeIdFrom, nodeIdTo).id;
     EdgeGraphicsItem *edgeG
         = new EdgeGraphicsItem{QLineF{mapGridToScenePos(m_backend->nodeById(nodeIdFrom)->pos),
                                       mapGridToScenePos(m_backend->nodeById(nodeIdTo)->pos)},
+                               nodeGFrom,
+                               nodeGTo,
                                addedId};
     m_edgeGItems.emplace(addedId, edgeG);
     addItem(edgeG);
+    nodeGFrom->addConnectedEdge(edgeG);
+    nodeGTo->addConnectedEdge(edgeG);
     connect(edgeG, &EdgeGraphicsItem::edgeSelected, this, &GraphScene::onEdgeSelected);
 }
 

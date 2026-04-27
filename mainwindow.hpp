@@ -20,7 +20,6 @@ public:
 
 private slots:
     void on_btnAddNode_clicked(bool checked);
-
     void on_btnAddEdge_clicked(bool checked);
 
 private:
