@@ -11,18 +11,13 @@
 
 GraphScene::GraphScene(QObject *parent, Graph *backendGraph)
     : QGraphicsScene{parent}
+    , m_previewNode{new NodeGraphicsItem{"", QPointF{0, 0}, 0, nodeSize, false}}
 {
-    if (backendGraph) {
+    if (backendGraph)
         setBackendGraph(backendGraph);
-    }
     m_previewNode->setCacheMode(QGraphicsItem::DeviceCoordinateCache);
     addItem(m_previewNode);
     m_previewNode->hide();
-}
-
-Graph &GraphScene::backend()
-{
-    return *m_backend;
 }
 
 void GraphScene::setBackendGraph(Graph *backendGraph)
@@ -68,6 +63,26 @@ void GraphScene::addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo)
     nodeGFrom->addConnectedEdge(edgeG);
     nodeGTo->addConnectedEdge(edgeG);
     connect(edgeG, &EdgeGraphicsItem::edgeSelected, this, &GraphScene::onEdgeSelected);
+}
+
+void GraphScene::updateNode(const Node &node)
+{
+    m_backend->editNode(node);
+}
+
+void GraphScene::updateEdge(const Edge &edge)
+{
+    m_backend->editEdge(edge);
+}
+
+const Node &GraphScene::backendNodeById(uint32_t id)
+{
+    return *m_backend->nodeById(id);
+}
+
+const Edge &GraphScene::backendEdgeById(uint32_t id)
+{
+    return *m_backend->edgeById(id);
 }
 
 constexpr QPointF GraphScene::mapGridToScenePos(QPointF gridPos) noexcept

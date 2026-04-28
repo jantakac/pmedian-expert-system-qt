@@ -1,6 +1,7 @@
 #include "edgegraphicsitem.hpp"
 
 #include "graphscene.hpp"
+#include "nodegraphicsitem.hpp"
 
 EdgeGraphicsItem::EdgeGraphicsItem(const QLineF &line,
                                    NodeGraphicsItem *fromNodeG,

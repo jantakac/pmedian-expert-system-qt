@@ -1,6 +1,7 @@
 #include "mainwindow.hpp"
 #include "./ui_mainwindow.h"
 
+#include "graph.hpp"
 #include "graphscene.hpp"
 
 MainWindow::MainWindow(QWidget *parent)

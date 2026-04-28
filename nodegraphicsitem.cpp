@@ -1,11 +1,10 @@
 #include "nodegraphicsitem.hpp"
 
 #include <QBrush>
+#include <QFont>
 #include <QPen>
-#include <qfont.h>
 
 #include "edgegraphicsitem.hpp"
-#include "graphscene.hpp"
 
 NodeGraphicsItem::NodeGraphicsItem(const QString &label,
                                    QPointF scenePos,

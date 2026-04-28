@@ -2,6 +2,7 @@
 #define NODEGRAPHICSITEM_HPP
 
 #include <QGraphicsItem>
+#include <QObject>
 
 class EdgeGraphicsItem;
 
@@ -9,12 +10,17 @@ class NodeGraphicsItem : public QObject, public QGraphicsEllipseItem
 {
     Q_OBJECT
 public:
+    enum { Type = UserType + 1 };
+
     explicit NodeGraphicsItem(const QString &label,
                               QPointF scenePos,
                               uint32_t backendNodeId,
                               uint16_t size,
                               bool selectable,
                               QGraphicsItem *parent = nullptr);
+
+    int type() const override { return Type; }
+
     uint32_t backendNodeId();
     void addConnectedEdge(EdgeGraphicsItem *edgeG);
 

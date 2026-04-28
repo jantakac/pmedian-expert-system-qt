@@ -2,13 +2,14 @@
 #define GRAPHSCENE_HPP
 
 #include <QGraphicsScene>
+#include <QHash>
 #include <QPointer>
-
-#include "graph.hpp"
-#include "nodegraphicsitem.hpp"
 
 class NodeGraphicsItem;
 class EdgeGraphicsItem;
+class Graph;
+class Node;
+class Edge;
 
 class GraphScene : public QGraphicsScene
 {
@@ -20,12 +21,15 @@ public:
     static constexpr uint8_t edgeWidth = 8;
 
     explicit GraphScene(QObject *parent = nullptr, Graph *backendGraph = nullptr);
-    Graph &backend();
     void setBackendGraph(Graph *backendGraph);
-    const QList<std::pair<NodeGraphicsItem *, const Graph::Node *>> &nodes() const;
-    const QList<std::pair<EdgeGraphicsItem *, const Graph::Edge *>> &edges() const;
+    const QList<std::pair<NodeGraphicsItem *, const Node *>> &nodes() const;
+    const QList<std::pair<EdgeGraphicsItem *, const Edge *>> &edges() const;
     void addNode(const QPointF &scenePos);
     void addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo);
+    void updateNode(const Node &node);
+    void updateEdge(const Edge &edge);
+    const Node &backendNodeById(uint32_t id);
+    const Edge &backendEdgeById(uint32_t id);
     static constexpr QPointF mapGridToScenePos(QPointF gridPos) noexcept;
     static constexpr QPointF mapSceneToGridPos(const QPointF &scenePos) noexcept;
     void showPreviewNode();
@@ -44,7 +48,7 @@ private:
     QHash<uint32_t, NodeGraphicsItem *> m_nodeGItems;
     QHash<uint32_t, EdgeGraphicsItem *> m_edgeGItems;
 
-    NodeGraphicsItem *m_previewNode = new NodeGraphicsItem{"", QPointF{0, 0}, 0, nodeSize, false};
+    NodeGraphicsItem *m_previewNode;
     QPointer<Graph> m_backend;
 };
 

@@ -3,13 +3,16 @@
 #include <QMouseEvent>
 #include <QOpenGLWidget>
 #include <QScrollBar>
+#include <qgraphicsitem.h>
 
+#include "../editedgedialog.hpp"
+#include "../editnodedialog.hpp"
 #include "../graphscene.hpp"
+#include "../nodegraphicsitem.hpp"
 
 PanningView::PanningView(QWidget *parent)
     : QGraphicsView(parent)
 {
-    setCacheMode(QGraphicsView::CacheBackground);
     setViewport(new QOpenGLWidget{});
     setViewportUpdateMode(QGraphicsView::FullViewportUpdate);
     setRenderHint(QPainter::Antialiasing);
@@ -65,6 +68,30 @@ void PanningView::mousePressEvent(QMouseEvent *event)
     if (event->button() == Qt::MiddleButton) {
         m_lastPanPoint = event->pos();
         setCursor(Qt::ClosedHandCursor);
+    }
+
+    if (event->button() == Qt::RightButton) {
+        QGraphicsItem *item = itemAt(event->position().toPoint());
+
+        if (item) {
+            NodeGraphicsItem *nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(item);
+
+            if (!nodeG && item->parentItem()) {
+                nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(item->parentItem());
+            }
+
+            if (nodeG) {
+                EditNodeDialog dialog{m_graphScene->backendNodeById(nodeG->backendNodeId()), this};
+
+                if (dialog.exec() == QDialog::Accepted) {
+                    Node updatedNode = dialog.editedNode();
+
+                    m_graphScene->updateNode(updatedNode);
+
+                    qDebug() << "Node" << nodeG->backendNodeId() << "updated.";
+                }
+            }
+        }
     }
     QGraphicsView::mousePressEvent(event);
 }
