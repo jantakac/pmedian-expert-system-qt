@@ -51,20 +51,26 @@ void GraphScene::addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo)
 {
     if (m_backend->edgeByNodes(nodeIdFrom, nodeIdTo))
         return;
+
     NodeGraphicsItem *nodeGFrom = m_nodeGItems[nodeIdFrom];
     NodeGraphicsItem *nodeGTo = m_nodeGItems[nodeIdTo];
-    uint32_t addedId = m_backend->addEdge(nodeIdFrom, nodeIdTo).id;
+
+    const Edge &bEdge = m_backend->addEdge(nodeIdFrom, nodeIdTo);
     EdgeGraphicsItem *edgeG = new EdgeGraphicsItem{QLineF{GraphUtils::mapGridToScenePos(
                                                               m_backend->nodeById(nodeIdFrom)->pos),
                                                           GraphUtils::mapGridToScenePos(
                                                               m_backend->nodeById(nodeIdTo)->pos)},
                                                    nodeGFrom,
                                                    nodeGTo,
-                                                   addedId};
-    m_edgeGItems.emplace(addedId, edgeG);
+                                                   bEdge.id,
+                                                   bEdge.length};
+    m_edgeGItems.emplace(bEdge.id, edgeG);
+    edgeG->updateVisuals(bEdge);
     addItem(edgeG);
+
     nodeGFrom->addConnectedEdge(edgeG);
     nodeGTo->addConnectedEdge(edgeG);
+
     connect(edgeG, &EdgeGraphicsItem::edgeSelected, this, &GraphScene::onEdgeSelected);
 }
 
@@ -73,12 +79,26 @@ void GraphScene::updateNode(const Node &node)
     m_backend->editNode(node);
     if (m_nodeGItems.contains(node.id)) {
         m_nodeGItems[node.id]->updateVisuals(node);
+        updateAutoEdgeLengthsForNode(node.id);
     }
 }
 
 void GraphScene::updateEdge(const Edge &edge)
 {
-    m_backend->editEdge(edge);
+    Edge finalEdge = edge;
+
+    const Edge *oldState = m_backend->edgeById(edge.id);
+    if (oldState && oldState->isLengthManual && !edge.isLengthManual) {
+        const Node *nFrom = m_backend->nodeById(edge.from);
+        const Node *nTo = m_backend->nodeById(edge.to);
+        finalEdge.length = static_cast<float>(QLineF(nFrom->pos, nTo->pos).length());
+    }
+
+    m_backend->editEdge(finalEdge);
+
+    if (m_edgeGItems.contains(finalEdge.id)) {
+        m_edgeGItems[finalEdge.id]->updateVisuals(finalEdge);
+    }
 }
 
 const Node &GraphScene::backendNodeById(uint32_t id)
@@ -167,17 +187,46 @@ void GraphScene::drawForeground(QPainter *painter, const QRectF &rect)
     }
 }
 
+void GraphScene::updateAutoEdgeLengthsForNode(uint32_t nodeId)
+{
+    if (!m_backend || !m_nodeGItems.contains(nodeId))
+        return;
+
+    NodeGraphicsItem *nodeG = m_nodeGItems[nodeId];
+
+    for (EdgeGraphicsItem *edgeG : nodeG->connectedEdges()) {
+        uint32_t eId = edgeG->backendEdgeId();
+        const Edge *bEdge = m_backend->edgeById(eId);
+
+        if (bEdge && !bEdge->isLengthManual) {
+            const Node *nFrom = m_backend->nodeById(bEdge->from);
+            const Node *nTo = m_backend->nodeById(bEdge->to);
+
+            float newDist = static_cast<float>(QLineF(nFrom->pos, nTo->pos).length());
+
+            Edge updatedEdge = *bEdge;
+            updatedEdge.length = newDist;
+            m_backend->editEdge(updatedEdge);
+            edgeG->updateVisuals(updatedEdge);
+        }
+    }
+}
+
 void GraphScene::handleNodeMoveFinished(uint32_t nodeId, QPointF newScenePos)
 {
     if (!m_backend)
         return;
 
+    // 1. Sync Node Position
     QPointF gridPos = GraphUtils::mapSceneToGridPos(newScenePos);
-
     const Node *existingNode = m_backend->nodeById(nodeId);
-    if (existingNode) {
-        Node updatedNode = *existingNode;
-        updatedNode.pos = gridPos;
-        m_backend->editNode(updatedNode);
-    }
+    if (!existingNode)
+        return;
+
+    Node updatedNode = *existingNode;
+    updatedNode.pos = gridPos;
+    m_backend->editNode(updatedNode);
+
+    // 2. Sync Edge Lengths for "Auto" edges
+    updateAutoEdgeLengthsForNode(nodeId);
 }

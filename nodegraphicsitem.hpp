@@ -23,9 +23,10 @@ public:
 
     int type() const override { return Type; }
 
-    uint32_t backendNodeId();
+    uint32_t backendNodeId() const { return m_backendNodeId; }
     void addConnectedEdge(EdgeGraphicsItem *edgeG);
     void updateVisuals(const Node &node);
+    const QList<EdgeGraphicsItem *> &connectedEdges() const { return m_connectedEdges; }
 
 signals:
     void nodeSelected(uint32_t nodeId);

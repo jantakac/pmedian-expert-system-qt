@@ -48,6 +48,7 @@ private:
     QPointer<Graph> m_backend;
 
     uint32_t mapSceneToGridPos(const QPointF &);
+    void updateAutoEdgeLengthsForNode(uint32_t nodeId);
 private slots:
     void handleNodeMoveFinished(uint32_t nodeId, QPointF newScenePos);
 };

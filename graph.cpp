@@ -59,9 +59,12 @@ void Graph::editNode(const Node &node)
 
 void Graph::editEdge(const Edge &edge)
 {
-    Edge *editedEdge = edgeByIdEditable(edge.id);
-    editedEdge->length = edge.length;
-    editedEdge->isEnabled = edge.isEnabled;
+    Edge *e = edgeByIdEditable(edge.id);
+    if (e) {
+        e->length = edge.length;
+        e->isEnabled = edge.isEnabled;
+        e->isLengthManual = edge.isLengthManual;
+    }
 }
 
 const Edge *Graph::edgeById(uint32_t id)

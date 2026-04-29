@@ -5,6 +5,7 @@
 #include <QScrollBar>
 #include <qgraphicsitem.h>
 
+#include "../edgegraphicsitem.hpp"
 #include "../editedgedialog.hpp"
 #include "../editnodedialog.hpp"
 #include "../graphscene.hpp"
@@ -72,24 +73,23 @@ void PanningView::mousePressEvent(QMouseEvent *event)
 
     if (event->button() == Qt::RightButton) {
         QGraphicsItem *item = itemAt(event->position().toPoint());
+        if (!item)
+            return;
 
-        if (item) {
-            NodeGraphicsItem *nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(item);
+        NodeGraphicsItem *nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(item);
+        if (!nodeG && item->parentItem()) {
+            nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(item->parentItem());
+        }
 
-            if (!nodeG && item->parentItem()) {
-                nodeG = qgraphicsitem_cast<NodeGraphicsItem *>(item->parentItem());
+        if (nodeG) {
+            EditNodeDialog dialog{m_graphScene->backendNodeById(nodeG->backendNodeId()), this};
+            if (dialog.exec() == QDialog::Accepted) {
+                m_graphScene->updateNode(dialog.editedNode());
             }
-
-            if (nodeG) {
-                EditNodeDialog dialog{m_graphScene->backendNodeById(nodeG->backendNodeId()), this};
-
-                if (dialog.exec() == QDialog::Accepted) {
-                    Node updatedNode = dialog.editedNode();
-
-                    m_graphScene->updateNode(updatedNode);
-
-                    qDebug() << "Node" << nodeG->backendNodeId() << "updated.";
-                }
+        } else if (EdgeGraphicsItem *edgeG = qgraphicsitem_cast<EdgeGraphicsItem *>(item)) {
+            EditEdgeDialog dialog{m_graphScene->backendEdgeById(edgeG->backendEdgeId()), this};
+            if (dialog.exec() == QDialog::Accepted) {
+                m_graphScene->updateEdge(dialog.editedEdge());
             }
         }
     }

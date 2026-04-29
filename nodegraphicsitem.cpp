@@ -55,11 +55,6 @@ void NodeGraphicsItem::setupLabel(const QString &text)
     m_label->setPos(-lRect.width() / 2.0, -lRect.height() / 2.0);
 }
 
-uint32_t NodeGraphicsItem::backendNodeId()
-{
-    return m_backendNodeId;
-}
-
 void NodeGraphicsItem::addConnectedEdge(EdgeGraphicsItem *edgeG)
 {
     m_connectedEdges.push_back(edgeG);
