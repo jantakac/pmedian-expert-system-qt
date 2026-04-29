@@ -3,8 +3,10 @@
 
 #include <QGraphicsItem>
 #include <QObject>
+#include "graphscene.hpp"
 
 class EdgeGraphicsItem;
+class Node;
 
 class NodeGraphicsItem : public QObject, public QGraphicsEllipseItem
 {
@@ -23,17 +25,21 @@ public:
 
     uint32_t backendNodeId();
     void addConnectedEdge(EdgeGraphicsItem *edgeG);
+    void updateVisuals(const Node &node);
 
 signals:
     void nodeSelected(uint32_t nodeId);
     void nodeDeselected(uint32_t nodeId);
+    void nodeMoveFinished(uint32_t nodeId, QPointF newScenePos);
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 private:
     QList<EdgeGraphicsItem *> m_connectedEdges;
+    QPointF m_startingPos;
     QGraphicsTextItem *m_label;
     uint32_t m_backendNodeId;
     uint16_t m_size;

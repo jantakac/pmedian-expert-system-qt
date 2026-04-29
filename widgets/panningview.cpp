@@ -98,13 +98,11 @@ void PanningView::mousePressEvent(QMouseEvent *event)
 
 void PanningView::mouseReleaseEvent(QMouseEvent *event)
 {
-    if (event->button() == Qt::MiddleButton) {
-        if (!m_isPlacingNode)
-            setCursor(Qt::ArrowCursor);
-        else
-            setCursor(Qt::CrossCursor);
-    }
     QGraphicsView::mouseReleaseEvent(event);
+
+    if (event->button() == Qt::MiddleButton) {
+        setCursor(Qt::ArrowCursor);
+    }
 }
 
 void PanningView::mouseMoveEvent(QMouseEvent *event)

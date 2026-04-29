@@ -4,7 +4,9 @@
 #include <QFont>
 #include <QPen>
 
+#include "coordinateutils.hpp"
 #include "edgegraphicsitem.hpp"
+#include "node.hpp"
 
 NodeGraphicsItem::NodeGraphicsItem(const QString &label,
                                    QPointF scenePos,
@@ -63,14 +65,40 @@ void NodeGraphicsItem::addConnectedEdge(EdgeGraphicsItem *edgeG)
     m_connectedEdges.push_back(edgeG);
 }
 
+void NodeGraphicsItem::updateVisuals(const Node &node)
+{
+    if (m_label) {
+        m_label->setPlainText(QString::number(node.id));
+        QRectF lRect = m_label->boundingRect();
+        m_label->setPos(-lRect.width() / 2.0, -lRect.height() / 2.0);
+    }
+
+    setBrush(node.type == NodeType::Customer ? Qt::green : Qt::magenta);
+
+    QPointF newScenePos = GraphUtils::mapGridToScenePos(node.pos);
+    if (pos() != newScenePos) {
+        setPos(newScenePos);
+    }
+}
+
 void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
 {
+    m_startingPos = pos();
     QGraphicsEllipseItem::mousePressEvent(event);
 
     if (isSelected())
         emit nodeSelected(m_backendNodeId);
     else
         emit nodeDeselected(m_backendNodeId);
+}
+
+void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+{
+    QGraphicsEllipseItem::mouseReleaseEvent(event);
+
+    if (pos() != m_startingPos) {
+        emit nodeMoveFinished(m_backendNodeId, pos());
+    }
 }
 
 QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant &value)

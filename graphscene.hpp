@@ -15,8 +15,6 @@ class GraphScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
-    static constexpr uint8_t gridSize = 50;
-    static constexpr uint8_t gridTickStep = 10;
     static constexpr uint8_t nodeSize = 40;
     static constexpr uint8_t edgeWidth = 8;
 
@@ -30,8 +28,6 @@ public:
     void updateEdge(const Edge &edge);
     const Node &backendNodeById(uint32_t id);
     const Edge &backendEdgeById(uint32_t id);
-    static constexpr QPointF mapGridToScenePos(QPointF gridPos) noexcept;
-    static constexpr QPointF mapSceneToGridPos(const QPointF &scenePos) noexcept;
     void showPreviewNode();
     void hidePreviewNode();
     void setPreviewNodePos(const QPointF &pos);
@@ -50,6 +46,10 @@ private:
 
     NodeGraphicsItem *m_previewNode;
     QPointer<Graph> m_backend;
+
+    uint32_t mapSceneToGridPos(const QPointF &);
+private slots:
+    void handleNodeMoveFinished(uint32_t nodeId, QPointF newScenePos);
 };
 
 #endif // GRAPHSCENE_HPP
