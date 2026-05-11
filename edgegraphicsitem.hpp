@@ -1,41 +1,46 @@
 #ifndef EDGEGRAPHICSITEM_HPP
 #define EDGEGRAPHICSITEM_HPP
 
-#include <QGraphicsLineItem>
-#include <QGraphicsTextItem>
-
-#include "edge.hpp"
+#include <QGraphicsObject>
+#include "graph.hpp"
 
 class NodeGraphicsItem;
 
-class EdgeGraphicsItem : public QObject, public QGraphicsLineItem
+class EdgeGraphicsItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    explicit EdgeGraphicsItem(const QLineF &line,
-                              NodeGraphicsItem *fromNodeG,
-                              NodeGraphicsItem *toNodeG,
-                              uint32_t backendEdgeId,
-                              float initialLength,
-                              QObject *parent = nullptr);
-    void updateGeometry();
-    void updateVisuals(const Edge &edge);
-    uint32_t backendEdgeId() const { return m_backendEdgeId; }
+    EdgeGraphicsItem(EdgeId id, NodeGraphicsItem *fromNode, NodeGraphicsItem *toNode);
+    ~EdgeGraphicsItem() override;
 
-signals:
-    void edgeSelected(uint32_t edgeId);
-    void edgeDeselected(uint32_t edgeId);
+    EdgeId id() const { return m_id; }
 
-protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void updateFromModel(const Edge &data);
+
+    void updatePosition();
+
+    QRectF boundingRect() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
+
+    QPainterPath shape() const override;
 
 private:
-    NodeGraphicsItem *m_fromNodeG;
-    NodeGraphicsItem *m_toNodeG;
-    QGraphicsTextItem *m_label;
-    uint32_t m_backendEdgeId;
+    const EdgeId m_id;
+    NodeGraphicsItem *m_fromNode;
+    NodeGraphicsItem *m_toNode;
 
-    void updateLabelPosition();
+    QLineF m_line{};
+    QRectF m_boundingRect{};
+
+    float m_length{0.0f};
+    bool m_isEnabled{true};
+    bool m_isManual{false};
+
+    static constexpr float StrokeWidth = 4.0f;
+    static constexpr float SelectionTolerance = 10.0f;
+
+    QPen determinePen(const QStyleOptionGraphicsItem *option) const;
+    void drawLabel(QPainter *painter) const;
 };
 
 #endif // EDGEGRAPHICSITEM_HPP

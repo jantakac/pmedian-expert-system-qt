@@ -1,42 +1,91 @@
 #ifndef GRAPH_HPP
 #define GRAPH_HPP
 
-#include <QHash>
 #include <QObject>
 #include <QPointF>
-#include <filesystem>
+#include <cstdint>
+#include <optional>
+#include <unordered_map>
 
-#include "edge.hpp"
-#include "node.hpp"
+enum class NodeId : uint32_t { Invalid = 0 };
+enum class EdgeId : uint32_t { Invalid = 0 };
+
+struct NodeIdHash
+{
+    size_t operator()(NodeId id) const { return static_cast<size_t>(id); }
+};
+struct EdgeIdHash
+{
+    size_t operator()(EdgeId id) const { return static_cast<size_t>(id); }
+};
+
+enum class NodeType : uint8_t { Customer, PMedianCandidate };
+
+struct Node
+{
+    NodeId id;
+    QPointF pos; // Grid coordinates
+    NodeType type{NodeType::Customer};
+    bool visited{false};
+};
+
+struct Edge
+{
+    EdgeId id;
+    NodeId from;
+    NodeId to;
+    float length;
+    bool isEnabled{true};
+    bool isLengthManual{false};
+};
 
 class Graph : public QObject
 {
     Q_OBJECT
 public:
-    explicit Graph(QObject *parent = nullptr);
-    explicit Graph(std::filesystem::path nodesPath,
-                   std::filesystem::path edgesPath,
-                   QObject *parent = nullptr);
-    const Node &addNode(QPointF pos);
-    void removeNode(uint32_t id);
-    const Edge &addEdge(uint32_t from, uint32_t to);
-    void removeEdge(uint32_t id);
-    const Node *nodeById(uint32_t id);
-    const Edge *edgeById(uint32_t id);
-    const Edge *edgeByNodes(uint32_t fromNodeId, uint32_t toNodeId);
-    void editNode(const Node &node);
-    void editEdge(const Edge &edge);
+    explicit Graph(QObject *parent = nullptr)
+        : QObject(parent)
+    {}
+
+    NodeId addNode(QPointF pos);
+    void removeNode(NodeId id);
+    void moveNode(NodeId id, QPointF newPos);
+    void updateNode(const Node &node);
+    void setNodeType(NodeId id, NodeType type);
+
+    EdgeId addEdge(NodeId from, NodeId to, std::optional<float> manualLength = std::nullopt);
+    void removeEdge(EdgeId id);
+    void updateEdge(const Edge &edge);
+
+    [[nodiscard]] const Node *findNode(NodeId id) const;
+    [[nodiscard]] const Edge *findEdge(EdgeId id) const;
+    [[nodiscard]] const std::unordered_map<NodeId, Node, NodeIdHash> &nodes() const
+    {
+        return m_nodes;
+    }
+    [[nodiscard]] const std::unordered_map<EdgeId, Edge, EdgeIdHash> &edges() const
+    {
+        return m_edges;
+    }
+
+signals:
+    void nodeAdded(NodeId id);
+    void nodeRemoved(NodeId id);
+    void nodeMoved(NodeId id, QPointF newPos);
+    void nodeUpdated(NodeId id);
+
+    void edgeAdded(EdgeId id);
+    void edgeRemoved(EdgeId id);
+    void edgeUpdated(EdgeId id);
 
 private:
-    QHash<uint32_t, Node> m_nodes;
-    QHash<uint32_t, Edge> m_edges;
-    double m_costPerKm = 0;
-    uint32_t m_nextNodeId = 1;
+    std::unordered_map<NodeId, Node, NodeIdHash> m_nodes;
+    std::unordered_map<EdgeId, Edge, EdgeIdHash> m_edges;
 
-    void loadNodes(std::filesystem::path path);
-    void loadEdges(std::filesystem::path path);
-    Node *nodeByIdEditable(uint32_t id);
-    Edge *edgeByIdEditable(uint32_t id);
+    uint32_t m_nextNodeId{1};
+    uint32_t m_nextEdgeId{1};
+
+    float calculateDistance(QPointF a, QPointF b) const;
 };
 
 #endif // GRAPH_HPP

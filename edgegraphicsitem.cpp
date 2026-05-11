@@ -1,93 +1,145 @@
 #include "edgegraphicsitem.hpp"
-
-#include "graphscene.hpp"
+#include <QPainter>
+#include <QStyleOptionGraphicsItem>
 #include "nodegraphicsitem.hpp"
 
-EdgeGraphicsItem::EdgeGraphicsItem(const QLineF &line,
-                                   NodeGraphicsItem *fromNodeG,
-                                   NodeGraphicsItem *toNodeG,
-                                   uint32_t backendEdgeId,
-                                   float initialLength,
-                                   QObject *parent)
-    : QObject{parent}
-    , QGraphicsLineItem{line}
-    , m_fromNodeG{fromNodeG}
-    , m_toNodeG{toNodeG}
-    , m_backendEdgeId{backendEdgeId}
+EdgeGraphicsItem::EdgeGraphicsItem(EdgeId id, NodeGraphicsItem *fromNode, NodeGraphicsItem *toNode)
+    : m_id(id)
+    , m_fromNode(fromNode)
+    , m_toNode(toNode)
 {
+    setZValue(-1.0);
+
+    if (m_fromNode)
+        m_fromNode->addConnectedEdge(this);
+    if (m_toNode)
+        m_toNode->addConnectedEdge(this);
+
     setFlags(ItemIsSelectable);
-    setZValue(5);
-
-    m_label = new QGraphicsTextItem(this);
-    m_label->setPlainText(QString::fromStdString(std::format("{:.2f}", initialLength)));
-
-    QFont font = m_label->font();
-    font.setPointSizeF(10);
-    font.setBold(true);
-    m_label->setFont(font);
-
-    updateVisuals(Edge(backendEdgeId, 0, 0, initialLength));
+    updatePosition();
 }
 
-void EdgeGraphicsItem::updateGeometry()
+EdgeGraphicsItem::~EdgeGraphicsItem()
 {
-    QLineF newLine{m_fromNodeG->mapToScene(m_fromNodeG->rect().center()),
-                   m_toNodeG->mapToScene(m_toNodeG->rect().center())};
-    setLine(newLine);
-    updateLabelPosition();
-}
-
-void EdgeGraphicsItem::updateVisuals(const Edge &edge)
-{
-    m_label->setPlainText(QString::fromStdString(std::format("{:.2f}", edge.length)));
-
-    if (!edge.isEnabled) {
-        QColor disabledColor(200, 200, 200, 80);
-        setPen(QPen{disabledColor, GraphScene::edgeWidth});
-        m_label->setDefaultTextColor(disabledColor);
-    } else {
-        setPen(QPen{Qt::black, GraphScene::edgeWidth});
-        m_label->setDefaultTextColor(Qt::darkBlue);
+    if (m_fromNode) {
+        m_fromNode->removeConnectedEdge(this);
     }
-
-    updateGeometry();
-}
-
-void EdgeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
-{
-    QGraphicsLineItem::mousePressEvent(event);
-
-    if (isSelected())
-        emit edgeSelected(m_backendEdgeId);
-    else
-        emit edgeDeselected(m_backendEdgeId);
-}
-
-void EdgeGraphicsItem::updateLabelPosition()
-{
-    QLineF curLine = line();
-    QPointF center = curLine.center();
-
-    qreal angle = -curLine.angle();
-
-    if (curLine.angle() > 90 && curLine.angle() < 270) {
-        angle += 180;
+    if (m_toNode) {
+        m_toNode->removeConnectedEdge(this);
     }
-    m_label->setRotation(angle);
+}
+void EdgeGraphicsItem::updateFromModel(const Edge &data)
+{
+    m_length = data.length;
+    m_isEnabled = data.isEnabled;
+    m_isManual = data.isLengthManual;
+    update();
+}
 
-    qreal dx = curLine.dx();
-    qreal dy = curLine.dy();
-    qreal len = curLine.length();
-
-    if (len == 0)
+void EdgeGraphicsItem::updatePosition()
+{
+    if (!m_fromNode || !m_toNode) [[unlikely]] {
         return;
+    }
 
-    const qreal offset = 20.0;
-    QPointF normal(-dy / len * offset, dx / len * offset);
+    prepareGeometryChange();
 
-    QRectF labelRect = m_label->boundingRect();
-    m_label->setTransformOriginPoint(labelRect.center());
+    const QPointF p1{mapFromScene(m_fromNode->scenePos())};
+    const QPointF p2{mapFromScene(m_toNode->scenePos())};
 
-    QPointF finalPos = center + normal - labelRect.center();
-    m_label->setPos(finalPos);
+    m_line = QLineF{p1, p2};
+
+    const qreal margin{StrokeWidth + 40.0};
+    m_boundingRect = QRectF{p1, p2}.normalized().adjusted(-margin, -margin, margin, margin);
+}
+
+QRectF EdgeGraphicsItem::boundingRect() const
+{
+    return m_boundingRect;
+}
+
+QPainterPath EdgeGraphicsItem::shape() const
+{
+    QPainterPath path{};
+    if (m_line.isNull()) {
+        return path;
+    }
+
+    path.moveTo(m_line.p1());
+    path.lineTo(m_line.p2());
+
+    QPainterPathStroker stroker{};
+    stroker.setWidth(SelectionTolerance);
+    stroker.setCapStyle(Qt::RoundCap);
+
+    return stroker.createStroke(path);
+}
+
+void EdgeGraphicsItem::paint(QPainter *painter,
+                             const QStyleOptionGraphicsItem *option,
+                             QWidget *widget)
+{
+    Q_UNUSED(widget);
+
+    if (m_line.isNull()) [[unlikely]] {
+        return;
+    }
+
+    painter->setPen(determinePen(option));
+    painter->drawLine(m_line);
+
+    drawLabel(painter);
+}
+
+QPen EdgeGraphicsItem::determinePen(const QStyleOptionGraphicsItem *option) const
+{
+    QPen pen{Qt::black, StrokeWidth, Qt::SolidLine, Qt::RoundCap};
+
+    if (!(option->state & QStyle::State_Enabled) || !m_isEnabled) {
+        pen.setColor(Qt::gray);
+        pen.setStyle(Qt::DashLine);
+    } else if (m_isManual) {
+        pen.setColor(Qt::darkCyan);
+    }
+
+    if (option->state & QStyle::State_Selected) {
+        pen.setColor(Qt::red);
+        pen.setWidthF(StrokeWidth + 2.0);
+    }
+
+    return pen;
+}
+
+void EdgeGraphicsItem::drawLabel(QPainter *painter) const
+{
+    if (m_line.isNull()) [[unlikely]] {
+        return;
+    }
+
+    const QString text{QString::number(m_length, 'f', 1)};
+    const QFontMetricsF fm{painter->font()};
+    const QRectF textRect = fm.boundingRect(text).adjusted(-2, -2, 2, 2);
+
+    const qreal len{m_line.length()};
+    const qreal offset{20.0};
+
+    const QPointF normal{-m_line.dy() / len * offset, m_line.dx() / len * offset};
+    const QPointF center{m_line.center()};
+
+    qreal angle{-m_line.angle()};
+    if (m_line.angle() > 90.0 && m_line.angle() < 270.0) {
+        angle += 180.0;
+    }
+
+    painter->save();
+    painter->translate(center + normal);
+    painter->rotate(angle);
+    painter->setPen(Qt::darkBlue);
+    painter->drawText(QRectF{-textRect.width() / 2.0,
+                             -textRect.height() / 2.0,
+                             textRect.width(),
+                             textRect.height()},
+                      Qt::AlignCenter,
+                      text);
+    painter->restore();
 }

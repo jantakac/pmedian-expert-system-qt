@@ -2,55 +2,55 @@
 #define GRAPHSCENE_HPP
 
 #include <QGraphicsScene>
-#include <QHash>
-#include <QPointer>
+#include "graph.hpp"
+#include <unordered_map>
 
 class NodeGraphicsItem;
 class EdgeGraphicsItem;
-class Graph;
-class Node;
-class Edge;
+
+enum class InteractionMode { Select, Pan, PlaceNode, PlaceEdge, Edit, Delete };
 
 class GraphScene : public QGraphicsScene
 {
     Q_OBJECT
 public:
-    static constexpr uint8_t nodeSize = 40;
-    static constexpr uint8_t edgeWidth = 8;
+    explicit GraphScene(Graph *graph, QObject *parent = nullptr);
 
-    explicit GraphScene(QObject *parent = nullptr, Graph *backendGraph = nullptr);
-    void setBackendGraph(Graph *backendGraph);
-    const QList<std::pair<NodeGraphicsItem *, const Node *>> &nodes() const;
-    const QList<std::pair<EdgeGraphicsItem *, const Edge *>> &edges() const;
-    void addNode(const QPointF &scenePos);
-    void addEdge(uint32_t nodeIdFrom, uint32_t nodeIdTo);
-    void updateNode(const Node &node);
-    void updateEdge(const Edge &edge);
-    const Node &backendNodeById(uint32_t id);
-    const Edge &backendEdgeById(uint32_t id);
-    void showPreviewNode();
-    void hidePreviewNode();
-    void setPreviewNodePos(const QPointF &pos);
+    void setInteractionMode(InteractionMode mode);
 
-public slots:
-    void onNodeSelected(uint32_t nodeId);
-    void onEdgeSelected(uint32_t edgeId);
+signals:
+    void deletionRequested(NodeId id, int edgeCount);
+    void nodeEditRequested(NodeId id);
+    void edgeEditRequested(EdgeId id);
 
 protected:
+    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
+    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void drawBackground(QPainter *painter, const QRectF &rect) override;
     void drawForeground(QPainter *painter, const QRectF &rect) override;
 
+private slots:
+    void handleNodeAdded(NodeId id);
+    void handleNodeRemoved(NodeId id);
+    void handleNodeMoved(NodeId id, QPointF pos);
+    void handleNodeUpdated(NodeId id);
+    void handleEdgeAdded(EdgeId id);
+    void handleEdgeRemoved(EdgeId id);
+    void handleEdgeUpdated(EdgeId id);
+
 private:
-    QHash<uint32_t, NodeGraphicsItem *> m_nodeGItems;
-    QHash<uint32_t, EdgeGraphicsItem *> m_edgeGItems;
+    Graph *m_graph;
+
+    InteractionMode m_mode{InteractionMode::Select};
+    std::optional<NodeId> m_firstNodeForEdge;
+
+    std::unordered_map<NodeId, NodeGraphicsItem *> m_nodeItems;
+    std::unordered_map<EdgeId, EdgeGraphicsItem *> m_edgeItems;
 
     NodeGraphicsItem *m_previewNode;
-    QPointer<Graph> m_backend;
 
-    uint32_t mapSceneToGridPos(const QPointF &);
-    void updateAutoEdgeLengthsForNode(uint32_t nodeId);
-private slots:
-    void handleNodeMoveFinished(uint32_t nodeId, QPointF newScenePos);
+    void updatePreview(QPointF scenePos);
 };
 
 #endif // GRAPHSCENE_HPP

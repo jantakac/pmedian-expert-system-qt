@@ -18,7 +18,17 @@
     <item>
      <layout class="QHBoxLayout" name="horizontalLayout">
       <item>
-       <widget class="QPushButton" name="btnAddNode">
+       <widget class="QPushButton" name="btnSelectMode">
+        <property name="text">
+         <string>Select</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnAddNodeMode">
         <property name="text">
          <string>Add node</string>
         </property>
@@ -28,7 +38,7 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnAddEdge">
+       <widget class="QPushButton" name="btnAddEdgeMode">
         <property name="text">
          <string>Add edge</string>
         </property>
@@ -38,16 +48,29 @@
        </widget>
       </item>
       <item>
-       <widget class="QPushButton" name="btnEdit">
+       <widget class="QPushButton" name="btnEditMode">
         <property name="text">
          <string>Edit</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnDeleteMode">
+        <property name="text">
+         <string>Delete</string>
+        </property>
+        <property name="checkable">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
      </layout>
     </item>
     <item>
-     <widget class="PanningView" name="gView"/>
+     <widget class="PanningView" name="panningView"/>
     </item>
    </layout>
   </widget>
@@ -57,7 +80,7 @@
      <x>0</x>
      <y>0</y>
      <width>800</width>
-     <height>21</height>
+     <height>17</height>
     </rect>
    </property>
   </widget>

@@ -1,107 +1,77 @@
 #include "nodegraphicsitem.hpp"
-
-#include <QBrush>
-#include <QFont>
-#include <QPen>
-
-#include "coordinateutils.hpp"
+#include <QPainter>
+#include <QStyleOptionGraphicsItem>
 #include "edgegraphicsitem.hpp"
-#include "node.hpp"
 
-NodeGraphicsItem::NodeGraphicsItem(const QString &label,
-                                   QPointF scenePos,
-                                   uint32_t backendNodeId,
-                                   uint16_t size,
-                                   bool selectable,
-                                   QGraphicsItem *parent)
-    : QGraphicsEllipseItem(parent)
-    , m_backendNodeId{backendNodeId}
-    , m_size{size}
+NodeGraphicsItem::NodeGraphicsItem(NodeId id, const Node &data)
+    : m_id(id)
+    , m_type(data.type)
+    , m_visited(data.visited)
 {
-    setupGeometry();
-    setupStyle();
-    setupInteraction(selectable);
-    setupLabel(label);
-    setPos(scenePos);
+    setFlags(ItemIsMovable | ItemIsSelectable | ItemSendsGeometryChanges);
+    setZValue(1.0); // Ensure nodes are always above edges
 }
 
-void NodeGraphicsItem::setupGeometry()
+void NodeGraphicsItem::addConnectedEdge(EdgeGraphicsItem *edge)
 {
-    setRect(-m_size / 2.0, -m_size / 2.0, m_size, m_size);
-}
-
-void NodeGraphicsItem::setupStyle()
-{
-    setBrush(QBrush{Qt::green});
-    setPen(QPen{Qt::black});
-    setZValue(10);
-}
-
-void NodeGraphicsItem::setupInteraction(bool isSelectable)
-{
-    if (isSelectable)
-        setFlags(ItemIsSelectable | ItemIsMovable | ItemSendsGeometryChanges);
-}
-
-void NodeGraphicsItem::setupLabel(const QString &text)
-{
-    m_label = new QGraphicsTextItem(text, this);
-
-    QFont font = m_label->font();
-    font.setPointSizeF(m_size / 3.0);
-    m_label->setFont(font);
-
-    QRectF lRect = m_label->boundingRect();
-    m_label->setPos(-lRect.width() / 2.0, -lRect.height() / 2.0);
-}
-
-void NodeGraphicsItem::addConnectedEdge(EdgeGraphicsItem *edgeG)
-{
-    m_connectedEdges.push_back(edgeG);
-}
-
-void NodeGraphicsItem::updateVisuals(const Node &node)
-{
-    if (m_label) {
-        m_label->setPlainText(QString::number(node.id));
-        QRectF lRect = m_label->boundingRect();
-        m_label->setPos(-lRect.width() / 2.0, -lRect.height() / 2.0);
-    }
-
-    setBrush(node.type == NodeType::Customer ? Qt::green : Qt::magenta);
-
-    QPointF newScenePos = GraphUtils::mapGridToScenePos(node.pos);
-    if (pos() != newScenePos) {
-        setPos(newScenePos);
+    if (edge) {
+        m_connectedEdges.push_back(edge);
     }
 }
 
-void NodeGraphicsItem::mousePressEvent(QGraphicsSceneMouseEvent *event)
+void NodeGraphicsItem::removeConnectedEdge(EdgeGraphicsItem *edge)
 {
-    m_startingPos = pos();
-    QGraphicsEllipseItem::mousePressEvent(event);
-
-    if (isSelected())
-        emit nodeSelected(m_backendNodeId);
-    else
-        emit nodeDeselected(m_backendNodeId);
+    std::erase(m_connectedEdges, edge);
 }
 
-void NodeGraphicsItem::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)
+void NodeGraphicsItem::updateFromModel(const Node &data)
 {
-    QGraphicsEllipseItem::mouseReleaseEvent(event);
+    m_type = data.type;
+    m_visited = data.visited;
+    update();
+}
 
-    if (pos() != m_startingPos) {
-        emit nodeMoveFinished(m_backendNodeId, pos());
+QRectF NodeGraphicsItem::boundingRect() const
+{
+    const float margin = 2.0f;
+    return QRectF(-Radius - margin, -Radius - margin, (Radius + margin) * 2, (Radius + margin) * 2);
+}
+
+void NodeGraphicsItem::paint(QPainter *painter,
+                             const QStyleOptionGraphicsItem *option,
+                             QWidget *widget)
+{
+    Q_UNUSED(widget);
+
+    painter->setRenderHint(QPainter::Antialiasing);
+
+    QBrush brush;
+    if (m_type == NodeType::PMedianCandidate) {
+        brush = QBrush(Qt::green);
+    } else {
+        brush = QBrush(m_visited ? Qt::darkBlue : Qt::blue);
     }
+
+    QPen pen(Qt::black, 2);
+    if (option->state & QStyle::State_Selected) {
+        pen.setColor(Qt::red);
+        pen.setWidth(3);
+    }
+
+    painter->setPen(pen);
+    painter->setBrush(brush);
+    painter->drawEllipse(QRectF(-Radius, -Radius, Radius * 2, Radius * 2));
+
+    painter->setPen(Qt::white);
+    painter->drawText(boundingRect(), Qt::AlignCenter, QString::number(static_cast<uint32_t>(m_id)));
 }
 
 QVariant NodeGraphicsItem::itemChange(GraphicsItemChange change, const QVariant &value)
 {
     if (change == ItemPositionHasChanged) {
-        for (EdgeGraphicsItem *connectedEdge : std::as_const(m_connectedEdges)) {
-            connectedEdge->updateGeometry();
+        for (auto *edge : m_connectedEdges) {
+            edge->updatePosition();
         }
     }
-    return QGraphicsEllipseItem::itemChange(change, value);
+    return QGraphicsObject::itemChange(change, value);
 }

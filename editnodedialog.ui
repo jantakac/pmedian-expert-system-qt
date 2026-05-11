@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>320</width>
-    <height>240</height>
+    <width>300</width>
+    <height>200</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -17,75 +17,78 @@
    <item>
     <layout class="QFormLayout" name="formLayout">
      <item row="0" column="0">
-      <widget class="QLabel" name="labelId">
+      <widget class="QLabel" name="labelX">
        <property name="text">
-        <string>Node ID:</string>
+        <string>Position X (Grid):</string>
        </property>
       </widget>
      </item>
      <item row="0" column="1">
-      <widget class="QSpinBox" name="spinId">
-       <property name="readOnly">
-        <bool>true</bool>
+      <widget class="QDoubleSpinBox" name="doubleSpinX">
+       <property name="minimum">
+        <double>-10000.000000000000000</double>
        </property>
        <property name="maximum">
-        <number>999999</number>
+        <double>10000.000000000000000</double>
        </property>
       </widget>
      </item>
      <item row="1" column="0">
-      <widget class="QLabel" name="labelX">
+      <widget class="QLabel" name="labelY">
        <property name="text">
-        <string>Position X:</string>
+        <string>Position Y (Grid):</string>
        </property>
       </widget>
      </item>
      <item row="1" column="1">
-      <widget class="QDoubleSpinBox" name="spinX">
+      <widget class="QDoubleSpinBox" name="doubleSpinY">
        <property name="minimum">
-        <double>-9999.989999999999782</double>
+        <double>-10000.000000000000000</double>
        </property>
        <property name="maximum">
-        <double>9999.989999999999782</double>
+        <double>10000.000000000000000</double>
        </property>
       </widget>
      </item>
      <item row="2" column="0">
-      <widget class="QLabel" name="labelY">
+      <widget class="QLabel" name="labelType">
        <property name="text">
-        <string>Position Y:</string>
+        <string>Node Type:</string>
        </property>
       </widget>
      </item>
      <item row="2" column="1">
-      <widget class="QDoubleSpinBox" name="spinY">
-       <property name="minimum">
-        <double>-9999.989999999999782</double>
-       </property>
-       <property name="maximum">
-        <double>9999.989999999999782</double>
-       </property>
-      </widget>
-     </item>
-     <item row="3" column="0">
-      <widget class="QLabel" name="labelType">
-       <property name="text">
-        <string>Type:</string>
-       </property>
-      </widget>
+      <widget class="QComboBox" name="comboType"/>
      </item>
      <item row="3" column="1">
-      <widget class="QComboBox" name="comboType"/>
+      <widget class="QCheckBox" name="checkVisited">
+       <property name="text">
+        <string>Mark as Visited</string>
+       </property>
+      </widget>
      </item>
     </layout>
    </item>
    <item>
+    <spacer name="verticalSpacer">
+     <property name="orientation">
+      <enum>Qt::Vertical</enum>
+     </property>
+     <property name="sizeHint" stdset="0">
+      <size>
+       <width>20</width>
+       <height>40</height>
+      </size>
+     </property>
+    </spacer>
+   </item>
+   <item>
     <widget class="QDialogButtonBox" name="buttonBox">
      <property name="orientation">
-      <enum>Qt::Orientation::Horizontal</enum>
+      <enum>Qt::Horizontal</enum>
      </property>
      <property name="standardButtons">
-      <set>QDialogButtonBox::StandardButton::Cancel|QDialogButtonBox::StandardButton::Ok</set>
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
      </property>
     </widget>
    </item>
@@ -100,12 +103,12 @@
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>248</x>
+     <y>254</y>
     </hint>
     <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
+     <x>157</x>
+     <y>274</y>
     </hint>
    </hints>
   </connection>
@@ -116,12 +119,12 @@
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">
-     <x>20</x>
-     <y>20</y>
+     <x>316</x>
+     <y>260</y>
     </hint>
     <hint type="destinationlabel">
-     <x>20</x>
-     <y>20</y>
+     <x>286</x>
+     <y>274</y>
     </hint>
    </hints>
   </connection>

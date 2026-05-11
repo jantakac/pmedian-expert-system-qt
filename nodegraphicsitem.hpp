@@ -1,54 +1,42 @@
 #ifndef NODEGRAPHICSITEM_HPP
 #define NODEGRAPHICSITEM_HPP
 
-#include <QGraphicsItem>
-#include <QObject>
-#include "graphscene.hpp"
+#include <QGraphicsObject>
+#include "graph.hpp"
+#include <vector>
 
 class EdgeGraphicsItem;
-class Node;
 
-class NodeGraphicsItem : public QObject, public QGraphicsEllipseItem
+class NodeGraphicsItem : public QGraphicsObject
 {
     Q_OBJECT
 public:
-    enum { Type = UserType + 1 };
+    explicit NodeGraphicsItem(NodeId id, const Node &data);
 
-    explicit NodeGraphicsItem(const QString &label,
-                              QPointF scenePos,
-                              uint32_t backendNodeId,
-                              uint16_t size,
-                              bool selectable,
-                              QGraphicsItem *parent = nullptr);
+    NodeId id() const { return m_id; }
 
-    int type() const override { return Type; }
+    void addConnectedEdge(EdgeGraphicsItem *edge);
+    void removeConnectedEdge(EdgeGraphicsItem *edge);
 
-    uint32_t backendNodeId() const { return m_backendNodeId; }
-    void addConnectedEdge(EdgeGraphicsItem *edgeG);
-    void updateVisuals(const Node &node);
-    const QList<EdgeGraphicsItem *> &connectedEdges() const { return m_connectedEdges; }
+    void updateFromModel(const Node &data);
+
+    QRectF boundingRect() const override;
+    void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
 signals:
-    void nodeSelected(uint32_t nodeId);
-    void nodeDeselected(uint32_t nodeId);
-    void nodeMoveFinished(uint32_t nodeId, QPointF newScenePos);
+    void positionChanged(NodeId id, QPointF newPos);
 
 protected:
-    void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     QVariant itemChange(GraphicsItemChange change, const QVariant &value) override;
 
 private:
-    QList<EdgeGraphicsItem *> m_connectedEdges;
-    QPointF m_startingPos;
-    QGraphicsTextItem *m_label;
-    uint32_t m_backendNodeId;
-    uint16_t m_size;
+    const NodeId m_id;
+    NodeType m_type;
+    bool m_visited;
 
-    void setupGeometry();
-    void setupStyle();
-    void setupInteraction(bool isSelectable);
-    void setupLabel(const QString &text);
+    std::vector<EdgeGraphicsItem *> m_connectedEdges;
+
+    static constexpr float Radius = 20.0f;
 };
 
 #endif // NODEGRAPHICSITEM_HPP
