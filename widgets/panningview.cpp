@@ -16,8 +16,6 @@ PanningView::PanningView(QWidget *parent)
     setVerticalScrollBarPolicy(Qt::ScrollBarAlwaysOff);
 
     setDragMode(QGraphicsView::NoDrag);
-    // setRenderHints(QPainter::Antialiasing | QPainter::TextAntialiasing
-    //                | QPainter::SmoothPixmapTransform);
 }
 
 void PanningView::wheelEvent(QWheelEvent *event)

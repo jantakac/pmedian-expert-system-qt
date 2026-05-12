@@ -25,7 +25,6 @@ signals:
 
 protected:
     void mousePressEvent(QGraphicsSceneMouseEvent *event) override;
-    void mouseMoveEvent(QGraphicsSceneMouseEvent *event) override;
     void mouseReleaseEvent(QGraphicsSceneMouseEvent *event) override;
     void drawBackground(QPainter *painter, const QRectF &rect) override;
     void drawForeground(QPainter *painter, const QRectF &rect) override;
@@ -47,8 +46,6 @@ private:
 
     std::unordered_map<NodeId, NodeGraphicsItem *> m_nodeItems;
     std::unordered_map<EdgeId, EdgeGraphicsItem *> m_edgeItems;
-
-    NodeGraphicsItem *m_previewNode;
 
     void updatePreview(QPointF scenePos);
 };

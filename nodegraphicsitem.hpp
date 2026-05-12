@@ -23,6 +23,8 @@ public:
     QRectF boundingRect() const override;
     void paint(QPainter *painter, const QStyleOptionGraphicsItem *option, QWidget *widget) override;
 
+    void setPreview(bool enabled);
+
 signals:
     void positionChanged(NodeId id, QPointF newPos);
 
@@ -33,6 +35,7 @@ private:
     const NodeId m_id;
     NodeType m_type;
     bool m_visited;
+    bool m_isPreview{false};
 
     std::vector<EdgeGraphicsItem *> m_connectedEdges;
 

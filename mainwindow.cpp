@@ -73,6 +73,7 @@ void MainWindow::on_btnSelectMode_clicked()
 {
     m_scene->setInteractionMode(InteractionMode::Select);
 
+    m_scene->clearSelection();
     for (auto &btn : m_btns) {
         btn->setChecked(false);
     }
@@ -83,6 +84,7 @@ void MainWindow::on_btnAddNodeMode_clicked()
 {
     m_scene->setInteractionMode(InteractionMode::PlaceNode);
 
+    m_scene->clearSelection();
     for (auto &btn : m_btns) {
         btn->setChecked(false);
     }
@@ -93,6 +95,7 @@ void MainWindow::on_btnAddEdgeMode_clicked()
 {
     m_scene->setInteractionMode(InteractionMode::PlaceEdge);
 
+    m_scene->clearSelection();
     for (auto &btn : m_btns) {
         btn->setChecked(false);
     }
@@ -103,6 +106,7 @@ void MainWindow::on_btnEditMode_clicked()
 {
     m_scene->setInteractionMode(InteractionMode::Edit);
 
+    m_scene->clearSelection();
     for (auto &btn : m_btns) {
         btn->setChecked(false);
     }
@@ -113,6 +117,7 @@ void MainWindow::on_btnDeleteMode_clicked()
 {
     m_scene->setInteractionMode(InteractionMode::Delete);
 
+    m_scene->clearSelection();
     for (auto &btn : m_btns) {
         btn->setChecked(false);
     }

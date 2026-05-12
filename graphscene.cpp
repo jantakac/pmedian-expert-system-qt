@@ -4,6 +4,7 @@
 #include "coordinateutils.hpp"
 #include "edgegraphicsitem.hpp"
 #include "nodegraphicsitem.hpp"
+#include <qgraphicsview.h>
 
 GraphScene::GraphScene(Graph *graph, QObject *parent)
     : QGraphicsScene(parent)
@@ -159,15 +160,6 @@ void GraphScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
     default:
         QGraphicsScene::mousePressEvent(event);
     }
-}
-
-void GraphScene::mouseMoveEvent(QGraphicsSceneMouseEvent *event)
-{
-    if (m_mode == InteractionMode::PlaceNode) {
-        // Logic for preview node following cursor could go here
-    }
-
-    QGraphicsScene::mouseMoveEvent(event);
 }
 
 void GraphScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

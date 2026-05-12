@@ -9,7 +9,7 @@ NodeGraphicsItem::NodeGraphicsItem(NodeId id, const Node &data)
     , m_visited(data.visited)
 {
     setFlags(ItemIsMovable | ItemIsSelectable | ItemSendsGeometryChanges);
-    setZValue(1.0); // Ensure nodes are always above edges
+    setZValue(1.0);
 }
 
 void NodeGraphicsItem::addConnectedEdge(EdgeGraphicsItem *edge)
@@ -47,12 +47,12 @@ void NodeGraphicsItem::paint(QPainter *painter,
 
     QBrush brush;
     if (m_type == NodeType::PMedianCandidate) {
-        brush = QBrush(Qt::green);
+        brush = QBrush(Qt::darkGreen);
     } else {
         brush = QBrush(m_visited ? Qt::darkBlue : Qt::blue);
     }
 
-    QPen pen(Qt::black, 2);
+    QPen pen{Qt::black, 2};
     if (option->state & QStyle::State_Selected) {
         pen.setColor(Qt::red);
         pen.setWidth(3);
