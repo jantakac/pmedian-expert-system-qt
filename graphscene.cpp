@@ -22,7 +22,13 @@ GraphScene::GraphScene(Graph *graph, QObject *parent)
 void GraphScene::setInteractionMode(InteractionMode mode)
 {
     m_mode = mode;
+    clearSelection();
     m_firstNodeForEdge.reset();
+
+    const bool canMove{m_mode == InteractionMode::Select};
+    for (auto const &[id, item] : m_nodeItems) {
+        item->setFlag(QGraphicsItem::ItemIsMovable, canMove);
+    }
 }
 
 void GraphScene::handleNodeAdded(NodeId id)
@@ -33,7 +39,7 @@ void GraphScene::handleNodeAdded(NodeId id)
 
     auto *item = new NodeGraphicsItem(id, *data);
     item->setPos(GraphUtils::mapGridToScenePos(data->pos));
-
+    item->setFlag(QGraphicsItem::ItemIsMovable, m_mode == InteractionMode::Select);
     m_nodeItems[id] = item;
     addItem(item);
 }
@@ -158,8 +164,9 @@ void GraphScene::mousePressEvent(QGraphicsSceneMouseEvent *event)
         break;
     }
     default:
-        QGraphicsScene::mousePressEvent(event);
+        break;
     }
+    QGraphicsScene::mousePressEvent(event);
 }
 
 void GraphScene::mouseReleaseEvent(QGraphicsSceneMouseEvent *event)

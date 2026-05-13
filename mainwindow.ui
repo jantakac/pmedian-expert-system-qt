@@ -20,7 +20,7 @@
       <item>
        <widget class="QPushButton" name="btnSelectMode">
         <property name="text">
-         <string>Select</string>
+         <string>Select/Move</string>
         </property>
         <property name="checkable">
          <bool>true</bool>
