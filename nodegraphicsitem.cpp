@@ -4,9 +4,8 @@
 #include "edgegraphicsitem.hpp"
 
 NodeGraphicsItem::NodeGraphicsItem(NodeId id, const Node &data)
-    : m_id(id)
-    , m_type(data.type)
-    , m_visited(data.visited)
+    : m_id{id}
+    , m_type{data.type}
 {
     setFlags(ItemIsMovable | ItemIsSelectable | ItemSendsGeometryChanges);
     setZValue(1.0);
@@ -27,7 +26,6 @@ void NodeGraphicsItem::removeConnectedEdge(EdgeGraphicsItem *edge)
 void NodeGraphicsItem::updateFromModel(const Node &data)
 {
     m_type = data.type;
-    m_visited = data.visited;
     update();
 }
 
@@ -46,10 +44,16 @@ void NodeGraphicsItem::paint(QPainter *painter,
     painter->setRenderHint(QPainter::Antialiasing);
 
     QBrush brush;
-    if (m_type == NodeType::PMedianCandidate) {
-        brush = QBrush(Qt::darkGreen);
-    } else {
-        brush = QBrush(m_visited ? Qt::darkBlue : Qt::blue);
+    switch (m_type) {
+    case NodeType::Customer:
+        brush = QBrush{Qt::darkBlue};
+        break;
+    case NodeType::PMedianCandidate:
+        brush = QBrush{Qt::darkGreen};
+        break;
+    case NodeType::ChosenMedian:
+        brush = QBrush{Qt::darkYellow};
+        break;
     }
 
     QPen pen{Qt::black, 2};

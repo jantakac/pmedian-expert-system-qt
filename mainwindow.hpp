@@ -3,8 +3,8 @@
 
 #include <QFutureWatcher>
 #include <QMainWindow>
-#include "graph.hpp"
-#include "solvertypes.hpp"
+#include "Graph.hpp"
+#include "SASolver.hpp"
 #include <memory>
 
 class QPushButton;
@@ -35,6 +35,8 @@ private slots:
     void handleOptimizationFinished();
 
     void on_btnEditMode_clicked();
+
+    void on_btnDeleteSol_clicked();
 
 private:
     Ui::MainWindow *ui;

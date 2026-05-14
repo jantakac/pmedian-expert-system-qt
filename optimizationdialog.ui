@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>OptimizationDialog</class>
+ <widget class="QDialog" name="OptimizationDialog">
+  <property name="windowTitle">
+   <string>Solver Configuration</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <item>
+    <layout class="QFormLayout" name="formLayout">
+     <!-- P Value -->
+     <item row="0" column="0">
+      <widget class="QLabel" name="labelP">
+       <property name="text">
+        <string>P (Max Medians):</string>
+       </property>
+      </widget>
+     </item>
+     <item row="0" column="1">
+      <widget class="QSpinBox" name="spinP">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>99999</number>
+       </property>
+       <property name="value">
+        <number>2</number>
+       </property>
+      </widget>
+     </item>
+     <!-- Cost per Km -->
+     <item row="1" column="0">
+      <widget class="QLabel" name="labelCost">
+       <property name="text">
+        <string>Cost per Km:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="1" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinCost">
+       <property name="decimals">
+        <number>2</number>
+       </property>
+       <property name="maximum">
+        <double>9999999.99</double>
+       </property>
+       <property name="value">
+        <double>1.00</double>
+       </property>
+      </widget>
+     </item>
+     <!-- Max Temperature -->
+     <item row="2" column="0">
+      <widget class="QLabel" name="labelTMax">
+       <property name="text">
+        <string>Max Temperature (Tmax):</string>
+       </property>
+      </widget>
+     </item>
+     <item row="2" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinTMax">
+       <property name="maximum">
+        <double>999999.99</double>
+       </property>
+       <property name="value">
+        <double>1000.00</double>
+       </property>
+      </widget>
+     </item>
+     <!-- Min Temperature -->
+     <item row="3" column="0">
+      <widget class="QLabel" name="labelTMin">
+       <property name="text">
+        <string>Min Temperature (Tmin):</string>
+       </property>
+      </widget>
+     </item>
+     <item row="3" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinTMin">
+       <property name="maximum">
+        <double>999999.99</double>
+       </property>
+       <property name="value">
+        <double>0.10</double>
+       </property>
+      </widget>
+     </item>
+     <!-- Cooling Rate -->
+     <item row="4" column="0">
+      <widget class="QLabel" name="labelCooling">
+       <property name="text">
+        <string>Cooling Factor (Alpha):</string>
+       </property>
+      </widget>
+     </item>
+     <item row="4" column="1">
+      <widget class="QDoubleSpinBox" name="doubleSpinCooling">
+       <property name="minimum">
+        <double>0.01</double>
+       </property>
+       <property name="maximum">
+        <double>0.99</double>
+       </property>
+       <property name="singleStep">
+        <double>0.01</double>
+       </property>
+       <property name="value">
+        <double>0.95</double>
+       </property>
+      </widget>
+     </item>
+     <!-- Iterations -->
+     <item row="5" column="0">
+      <widget class="QLabel" name="labelIters">
+       <property name="text">
+        <string>Iterations per Step:</string>
+       </property>
+      </widget>
+     </item>
+     <item row="5" column="1">
+      <widget class="QSpinBox" name="spinIterations">
+       <property name="minimum">
+        <number>1</number>
+       </property>
+       <property name="maximum">
+        <number>1000000</number>
+       </property>
+       <property name="value">
+        <number>100</number>
+       </property>
+      </widget>
+     </item>
+    </layout>
+   </item>
+   <item>
+    <widget class="QDialogButtonBox" name="buttonBox">
+     <property name="orientation">
+      <enum>Qt::Horizontal</enum>
+     </property>
+     <property name="standardButtons">
+      <set>QDialogButtonBox::Cancel|QDialogButtonBox::Ok</set>
+     </property>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>accepted()</signal>
+   <receiver>OptimizationDialog</receiver>
+   <slot>accept()</slot>
+  </connection>
+  <connection>
+   <sender>buttonBox</sender>
+   <signal>rejected()</signal>
+   <receiver>OptimizationDialog</receiver>
+   <slot>reject()</slot>
+  </connection>
+ </connections>
+</ui>

@@ -19,7 +19,7 @@ struct EdgeIdHash
     size_t operator()(EdgeId id) const { return static_cast<size_t>(id); }
 };
 
-enum class NodeType : uint8_t { Customer, PMedianCandidate };
+enum class NodeType : uint8_t { Customer, PMedianCandidate, ChosenMedian };
 
 struct Node
 {
@@ -37,6 +37,7 @@ struct Edge
     float length;
     bool isEnabled{true};
     bool isLengthManual{false};
+    bool isSolverOutput{false};
 };
 
 class Graph : public QObject
@@ -54,11 +55,15 @@ public:
     void setNodeType(NodeId id, NodeType type);
 
     EdgeId addEdge(NodeId from, NodeId to, std::optional<float> manualLength = std::nullopt);
+    void addSolutionEdge(NodeId from, NodeId to);
     void removeEdge(EdgeId id);
     void updateEdge(const Edge &edge);
 
+    void removeSolution();
+
     [[nodiscard]] const Node *findNode(NodeId id) const;
     [[nodiscard]] const Edge *findEdge(EdgeId id) const;
+    [[nodiscard]] const Edge lastAddedSolutionEdge() const;
     [[nodiscard]] const std::unordered_map<NodeId, Node, NodeIdHash> &nodes() const
     {
         return m_nodes;
@@ -75,12 +80,15 @@ signals:
     void nodeUpdated(NodeId id);
 
     void edgeAdded(EdgeId id);
+    void solutionEdgeAdded();
     void edgeRemoved(EdgeId id);
+    void solutionEdgesRemoved();
     void edgeUpdated(EdgeId id);
 
 private:
     std::unordered_map<NodeId, Node, NodeIdHash> m_nodes;
     std::unordered_map<EdgeId, Edge, EdgeIdHash> m_edges;
+    std::vector<Edge> m_solEdges;
 
     uint32_t m_nextNodeId{1};
     uint32_t m_nextEdgeId{1};

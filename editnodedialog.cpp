@@ -8,14 +8,11 @@ EditNodeDialog::EditNodeDialog(const Node &node, QWidget *parent)
 {
     ui->setupUi(this);
 
-    // Populate Type ComboBox
     ui->comboType->addItem("Customer", static_cast<int>(NodeType::Customer));
     ui->comboType->addItem("P-Median Candidate", static_cast<int>(NodeType::PMedianCandidate));
 
-    // Set Initial Values
     ui->doubleSpinX->setValue(node.pos.x());
     ui->doubleSpinY->setValue(node.pos.y());
-    ui->checkVisited->setChecked(node.visited);
 
     int typeIndex = ui->comboType->findData(static_cast<int>(node.type));
     ui->comboType->setCurrentIndex(typeIndex != -1 ? typeIndex : 0);
@@ -32,6 +29,5 @@ Node EditNodeDialog::getUpdatedNode() const
 {
     return Node{.id = m_id,
                 .pos = QPointF(ui->doubleSpinX->value(), ui->doubleSpinY->value()),
-                .type = static_cast<NodeType>(ui->comboType->currentData().toInt()),
-                .visited = ui->checkVisited->isChecked()};
+                .type = static_cast<NodeType>(ui->comboType->currentData().toInt())};
 }

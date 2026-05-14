@@ -15,7 +15,9 @@ GraphScene::GraphScene(Graph *graph, QObject *parent)
     connect(m_graph, &Graph::nodeMoved, this, &GraphScene::handleNodeMoved);
     connect(m_graph, &Graph::nodeUpdated, this, &GraphScene::handleNodeUpdated);
     connect(m_graph, &Graph::edgeAdded, this, &GraphScene::handleEdgeAdded);
+    connect(m_graph, &Graph::solutionEdgeAdded, this, &GraphScene::handleSolutionEdgeAdded);
     connect(m_graph, &Graph::edgeRemoved, this, &GraphScene::handleEdgeRemoved);
+    connect(m_graph, &Graph::solutionEdgesRemoved, this, &GraphScene::handleSolutionEdgesRemoved);
     connect(m_graph, &Graph::edgeUpdated, this, &GraphScene::handleEdgeUpdated);
 }
 
@@ -57,6 +59,17 @@ void GraphScene::handleEdgeAdded(EdgeId id)
     addItem(item);
 }
 
+void GraphScene::handleSolutionEdgeAdded()
+{
+    const Edge lastAddedSolEdge = m_graph->lastAddedSolutionEdge();
+    auto item = std::make_unique<EdgeGraphicsItem>(EdgeId::Invalid,
+                                                   m_nodeItems[lastAddedSolEdge.from],
+                                                   m_nodeItems[lastAddedSolEdge.to]);
+    item->updateFromModel(lastAddedSolEdge);
+    m_solEdgeItems.emplace_back(item.get());
+    addItem(item.release());
+}
+
 void GraphScene::handleNodeRemoved(NodeId id)
 {
     if (auto it = m_nodeItems.find(id); it != m_nodeItems.end()) {
@@ -73,6 +86,15 @@ void GraphScene::handleEdgeRemoved(EdgeId id)
         delete it->second;
         m_edgeItems.erase(it);
     }
+}
+
+void GraphScene::handleSolutionEdgesRemoved()
+{
+    for (EdgeGraphicsItem *item : m_solEdgeItems) {
+        removeItem(item);
+        delete item;
+    }
+    m_solEdgeItems.clear();
 }
 
 void GraphScene::handleEdgeUpdated(EdgeId id)

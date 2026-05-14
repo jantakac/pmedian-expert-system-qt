@@ -2,11 +2,11 @@
 #include <QFutureWatcher>
 #include <QMessageBox>
 #include <QtConcurrent>
+#include "SASolver.hpp"
 #include "editedgedialog.hpp"
 #include "editnodedialog.hpp"
-#include "graph.hpp"
 #include "graphscene.hpp"
-#include "solvertypes.hpp"
+#include "optimizationdialog.hpp"
 #include "ui_mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
@@ -44,7 +44,6 @@ void MainWindow::setupConnections()
         }
     });
 
-    // Handle Edge Edit
     connect(m_scene, &GraphScene::edgeEditRequested, this, [this](EdgeId id) {
         const Edge *edge = m_graph->findEdge(id);
         if (!edge)
@@ -119,38 +118,61 @@ void MainWindow::on_btnDeleteMode_clicked()
     ui->btnDeleteMode->setChecked(true);
 }
 
-
 void MainWindow::on_btnRunOptimization_clicked()
 {
-    std::vector<SolverNode> nodes;
+    OptimizationDialog dlg{this};
+    if (dlg.exec() != QDialog::Accepted) {
+        return;
+    }
+
+    SolverContext context{.params = dlg.params()};
+
     for (const auto &[id, node] : m_graph->nodes()) {
-        nodes.emplace_back(id, node.pos);
+        if (node.type == NodeType::Customer) {
+            context.customers.push_back(SolverNode{.id = id, .pos = node.pos});
+        } else if (node.type == NodeType::PMedianCandidate) {
+            context.candidates.push_back(SolverNode{.id = id, .pos = node.pos});
+        }
+    }
+
+    for (const auto &[id, edge] : m_graph->edges()) {
+        if (!edge.isEnabled) {
+            continue;
+        }
+        context.adjList[edge.from].push_back(SolverEdge{.to = edge.to, .length = edge.length});
+        context.adjList[edge.to].push_back(SolverEdge{.to = edge.from, .length = edge.length});
+    }
+
+    if (context.customers.empty() || context.candidates.empty()) {
+        QMessageBox::warning(
+            this,
+            "Optimization Error",
+            "The graph must contain at least one Customer and one P-Median Candidate.");
+        return;
     }
 
     this->setEnabled(false);
 
-    auto solverTask = [nodes = std::move(nodes)]() -> SolverResult {
-        std::vector<NodeId> results;
-        if (!nodes.empty())
-            results.push_back(nodes[0].id);
+    auto watcher = std::make_unique<QFutureWatcher<SolverResult>>();
+    auto *watcherPtr = watcher.get();
+    connect(watcherPtr, &QFutureWatcher<SolverResult>::finished, this, [this, watcherPtr]() {
+        const SolverResult result = watcherPtr->result();
 
-        QThread::msleep(2000); // Simulate heavy work
-        return SolverResult{.chosenCandidates = results};
-    };
+        for (const NodeId id : result.chosenCandidates) {
+            m_graph->setNodeType(id, NodeType::ChosenMedian);
+        }
 
-    auto *watcher = new QFutureWatcher<SolverResult>(this);
-    connect(watcher, &QFutureWatcher<SolverResult>::finished, this, [this, watcher]() {
-        SolverResult result = watcher->result();
-        for (NodeId id : result.chosenCandidates) {
-            // Logic to update node type in m_graph (needs a method in Graph)
-            // m_graph->setNodeType(id, NodeType::PMedianCandidate);
+        for (const auto &[customerId, medianId] : result.assignments) {
+            m_graph->addSolutionEdge(customerId, medianId);
         }
 
         this->setEnabled(true);
-        watcher->deleteLater();
+        watcherPtr->deleteLater();
     });
 
-    watcher->setFuture(QtConcurrent::run(solverTask));
+    watcher.release()->setParent(this);
+    watcherPtr->setFuture(QtConcurrent::run(
+        [ctx = std::move(context)]() -> SolverResult { return SASolver::solve(ctx); }));
 }
 
 void MainWindow::handleOptimizationFinished()
@@ -187,4 +209,9 @@ void MainWindow::setUiEnabled(bool enabled)
     } else {
         unsetCursor();
     }
+}
+
+void MainWindow::on_btnDeleteSol_clicked()
+{
+    m_graph->removeSolution();
 }

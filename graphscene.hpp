@@ -35,7 +35,9 @@ private slots:
     void handleNodeMoved(NodeId id, QPointF pos);
     void handleNodeUpdated(NodeId id);
     void handleEdgeAdded(EdgeId id);
+    void handleSolutionEdgeAdded();
     void handleEdgeRemoved(EdgeId id);
+    void handleSolutionEdgesRemoved();
     void handleEdgeUpdated(EdgeId id);
 
 private:
@@ -46,6 +48,7 @@ private:
 
     std::unordered_map<NodeId, NodeGraphicsItem *> m_nodeItems;
     std::unordered_map<EdgeId, EdgeGraphicsItem *> m_edgeItems;
+    std::vector<EdgeGraphicsItem *> m_solEdgeItems;
 
     void updatePreview(QPointF scenePos);
 };

@@ -35,6 +35,7 @@ private:
     float m_length{0.0f};
     bool m_isEnabled{true};
     bool m_isManual{false};
+    bool m_isSolverOutput{false};
 
     static constexpr float StrokeWidth = 4.0f;
     static constexpr float SelectionTolerance = 10.0f;

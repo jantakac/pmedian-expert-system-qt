@@ -91,11 +91,16 @@ EdgeId Graph::addEdge(NodeId from, NodeId to, std::optional<float> manualLength)
                        .from = from,
                        .to = to,
                        .length = length,
-                       .isEnabled = true,
                        .isLengthManual = manualLength.has_value()};
 
     emit edgeAdded(id);
     return id;
+}
+
+void Graph::addSolutionEdge(NodeId from, NodeId to)
+{
+    m_solEdges.emplace_back(EdgeId::Invalid, from, to, 0.0, true, true, true);
+    emit solutionEdgeAdded();
 }
 
 void Graph::removeEdge(EdgeId id)
@@ -113,6 +118,18 @@ void Graph::updateEdge(const Edge &edge)
     }
 }
 
+void Graph::removeSolution()
+{
+    std::erase_if(m_edges, [](const auto &item) { return item.second.isSolverOutput; });
+    for (auto &[id, node] : m_nodes) {
+        if (node.type == NodeType::ChosenMedian) {
+            node.type = NodeType::PMedianCandidate;
+            emit nodeUpdated(id);
+        }
+    }
+    emit solutionEdgesRemoved();
+}
+
 const Node *Graph::findNode(NodeId id) const
 {
     auto it = m_nodes.find(id);
@@ -123,6 +140,11 @@ const Edge *Graph::findEdge(EdgeId id) const
 {
     auto it = m_edges.find(id);
     return (it != m_edges.end()) ? &it->second : nullptr;
+}
+
+const Edge Graph::lastAddedSolutionEdge() const
+{
+    return m_solEdges.back();
 }
 
 float Graph::calculateDistance(QPointF a, QPointF b) const

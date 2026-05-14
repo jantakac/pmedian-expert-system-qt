@@ -34,7 +34,6 @@ protected:
 private:
     const NodeId m_id;
     NodeType m_type;
-    bool m_visited;
     bool m_isPreview{false};
 
     std::vector<EdgeGraphicsItem *> m_connectedEdges;

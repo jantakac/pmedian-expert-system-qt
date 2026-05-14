@@ -32,7 +32,11 @@ if(${QT_VERSION_MAJOR} GREATER_EQUAL 6)
         editnodedialog.hpp editnodedialog.cpp editnodedialog.ui
         editedgedialog.hpp editedgedialog.cpp editedgedialog.ui
         coordinateutils.hpp
-        solvertypes.hpp
+
+        optimizationdialog.hpp optimizationdialog.cpp optimizationdialog.ui
+        optimizationparams.hpp
+        sasolver.hpp
+        sasolver.cpp
 
     )
 # Define target properties for Android with Qt 6 as:

@@ -67,6 +67,20 @@
         </property>
        </widget>
       </item>
+      <item>
+       <widget class="QPushButton" name="btnRunOptimization">
+        <property name="text">
+         <string>Run Optimization</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="btnDeleteSol">
+        <property name="text">
+         <string>Remove Solution</string>
+        </property>
+       </widget>
+      </item>
      </layout>
     </item>
     <item>

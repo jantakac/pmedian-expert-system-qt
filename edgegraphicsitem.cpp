@@ -33,6 +33,7 @@ void EdgeGraphicsItem::updateFromModel(const Edge &data)
     m_length = data.length;
     m_isEnabled = data.isEnabled;
     m_isManual = data.isLengthManual;
+    m_isSolverOutput = data.isSolverOutput;
     update();
 }
 
@@ -88,7 +89,8 @@ void EdgeGraphicsItem::paint(QPainter *painter,
     painter->setPen(determinePen(option));
     painter->drawLine(m_line);
 
-    drawLabel(painter);
+    if (!m_isSolverOutput)
+        drawLabel(painter);
 }
 
 QPen EdgeGraphicsItem::determinePen(const QStyleOptionGraphicsItem *option) const
@@ -98,6 +100,8 @@ QPen EdgeGraphicsItem::determinePen(const QStyleOptionGraphicsItem *option) cons
     if (!(option->state & QStyle::State_Enabled) || !m_isEnabled) {
         pen.setColor(Qt::gray);
         pen.setStyle(Qt::DashLine);
+    } else if (m_isSolverOutput) {
+        pen.setColor(Qt::darkYellow);
     } else if (m_isManual) {
         pen.setColor(Qt::darkCyan);
     }
