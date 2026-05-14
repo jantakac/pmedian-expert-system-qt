@@ -72,6 +72,10 @@ public:
     {
         return m_edges;
     }
+    [[nodiscard]] bool isFullyConnected() const;
+    [[nodiscard]] bool save(const QString &path) const;
+    [[nodiscard]] bool load(const QString &path);
+    void clear();
 
 signals:
     void nodeAdded(NodeId id);

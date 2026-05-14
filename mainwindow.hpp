@@ -30,13 +30,17 @@ private slots:
     void on_btnAddNodeMode_clicked();
     void on_btnAddEdgeMode_clicked();
     void on_btnDeleteMode_clicked();
-
     void on_btnRunOptimization_clicked();
-    void handleOptimizationFinished();
-
     void on_btnEditMode_clicked();
-
     void on_btnDeleteSol_clicked();
+
+    void on_btnClear_clicked();
+
+    void on_btnLoad_clicked();
+
+    void on_btnSave_clicked();
+
+    void on_btnConnectivity_clicked();
 
 private:
     Ui::MainWindow *ui;

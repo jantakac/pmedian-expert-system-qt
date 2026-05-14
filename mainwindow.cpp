@@ -175,31 +175,6 @@ void MainWindow::on_btnRunOptimization_clicked()
         [ctx = std::move(context)]() -> SolverResult { return SASolver::solve(ctx); }));
 }
 
-void MainWindow::handleOptimizationFinished()
-{
-    SolverResult result = m_solverWatcher.result();
-
-    for (const auto &[id, node] : m_graph->nodes()) {
-        if (node.type == NodeType::PMedianCandidate) {
-            m_graph->setNodeType(id, NodeType::Customer);
-        }
-    }
-
-    for (NodeId id : result.chosenCandidates) {
-        m_graph->setNodeType(id, NodeType::PMedianCandidate);
-    }
-
-    setUiEnabled(true);
-
-    if (result.chosenCandidates.empty()) {
-        ui->statusbar->showMessage(tr("Optimization failed: No candidates found."), 5000);
-    } else {
-        ui->statusbar->showMessage(tr("Optimization successful: %1 nodes selected.")
-                                       .arg(result.chosenCandidates.size()),
-                                   5000);
-    }
-}
-
 void MainWindow::setUiEnabled(bool enabled)
 {
     ui->centralwidget->setEnabled(enabled);
@@ -214,4 +189,35 @@ void MainWindow::setUiEnabled(bool enabled)
 void MainWindow::on_btnDeleteSol_clicked()
 {
     m_graph->removeSolution();
+}
+
+void MainWindow::on_btnClear_clicked()
+{
+    m_graph->clear();
+}
+
+void MainWindow::on_btnLoad_clicked()
+{
+    if (m_graph->load("graph.json")) {
+        ui->statusbar->showMessage(tr("Loaded"));
+    } else {
+        ui->statusbar->showMessage(tr("Error loading a file"));
+    }
+}
+
+void MainWindow::on_btnSave_clicked()
+{
+    if (m_graph->save("graph.json")) {
+        ui->statusbar->showMessage(tr("Saved"));
+    } else {
+        ui->statusbar->showMessage(tr("Error saving a file"));
+    }
+}
+void MainWindow::on_btnConnectivity_clicked()
+{
+    if (m_graph->isFullyConnected()) {
+        QMessageBox::warning(this, "Connectivity Test", "The graph is fully connected!");
+    } else {
+        QMessageBox::warning(this, "Connectivity Test", "The graph is NOT fully connected!");
+    }
 }
