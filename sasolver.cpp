@@ -21,8 +21,8 @@ SolverResult SASolver::solve(const SolverContext &context)
 
 std::vector<double> SASolver::computeDistanceMatrix(const SolverContext &context)
 {
-    const auto numCust{context.customers.size()};
-    const auto numCand{context.candidates.size()};
+    const size_t numCust{context.customers.size()};
+    const size_t numCand{context.candidates.size()};
     constexpr double INF{std::numeric_limits<double>::infinity()};
 
     std::vector<double> storage(numCust * numCand, INF);
@@ -91,9 +91,9 @@ double SASolver::calculateCost(DistanceView dists,
 
 std::vector<size_t> SASolver::performOptimization(const SolverContext &context, DistanceView dists)
 {
-    const auto numCand{context.candidates.size()};
-    const auto p{std::min(static_cast<size_t>(context.params.pMedians), numCand)};
-    const auto &params{context.params};
+    const size_t numCand{context.candidates.size()};
+    const unsigned long long p{std::min(static_cast<size_t>(context.params.pMedians), numCand)};
+    const OptimizationParams &params{context.params};
 
     std::vector<size_t> currentState(p);
     std::iota(currentState.begin(), currentState.end(), 0);
@@ -145,9 +145,9 @@ SolverResult SASolver::generateResult(const SolverContext &context,
                                       DistanceView dists,
                                       const std::vector<size_t> &bestState)
 {
-    const auto numCust{context.customers.size()};
-    const auto &customers{context.customers};
-    const auto &candidates{context.candidates};
+    const size_t numCust{context.customers.size()};
+    const std::vector<SolverNode> &customers{context.customers};
+    const std::vector<SolverNode> &candidates{context.candidates};
 
     SolverResult result;
     result.chosenCandidates.reserve(bestState.size());
